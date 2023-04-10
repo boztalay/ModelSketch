@@ -33,37 +33,126 @@ class Node: Hashable {
     }
 }
 
+class Connection: Equatable {
+    
+    let nodeA: Node
+    let nodeB: Node
+    
+    init(nodeA: Node, nodeB: Node) {
+        self.nodeA = nodeA
+        self.nodeB = nodeB
+    }
+    
+    static func == (lhs: Connection, rhs: Connection) -> Bool {
+        return ((lhs.nodeA == rhs.nodeA) && (lhs.nodeB == rhs.nodeB)) || ((lhs.nodeA == rhs.nodeB) && (lhs.nodeB == rhs.nodeA))
+    }
+}
+
 class Model {
 
     private(set) var nodes: [Node]
+    private(set) var connections: [Connection]
     
     init() {
         self.nodes = []
+        self.connections = []
     }
     
     func createNode(at x: CGFloat, _ y: CGFloat) {
         self.nodes.append(Node(x: x, y: y))
     }
+    
+    func addConnection(between nodeA: Node, _ nodeB: Node) {
+        let connection = Connection(nodeA: nodeA, nodeB: nodeB)
+        guard !self.connections.contains(connection) else {
+            return
+        }
+        
+        self.connections.append(connection)
+    }
 }
-
 
 class ModelView: UIView {
     
     let model: Model
-    var gestureRecognizerDelegate: UIGestureRecognizerDelegate!
+    var drawingMode: DrawingMode
     var nodeViews: [Node : NodeView]
+    var partialConnections: [NodeView : CGPoint]
+    var gestureRecognizerDelegate: UIGestureRecognizerDelegate!
     
-    init(model: Model) {
+    init(model: Model, drawingMode: DrawingMode) {
         self.model = model
+        self.drawingMode = drawingMode
         self.nodeViews = [:]
+        self.partialConnections = [:]
 
         super.init(frame: CGRect.zero)
+        
+        self.backgroundColor = .clear
+    }
+    
+    func setDrawingMode(_ drawingMode: DrawingMode) {
+        self.drawingMode = drawingMode
+        for nodeView in self.nodeViews.values {
+            nodeView.setDrawingMode(self.drawingMode)
+        }
+        
+        if self.drawingMode != .connectNodes {
+            self.partialConnections = [:]
+        }
+        
+        self.setNeedsDisplay()
+    }
+    
+    func startConnection(from nodeView: NodeView, at location: CGPoint) {
+        self.partialConnections[nodeView] = location
+        self.setNeedsDisplay()
+    }
+    
+    func updateConnection(from nodeView: NodeView, at location: CGPoint) {
+        self.partialConnections[nodeView] = location
+        self.setNeedsDisplay()
+    }
+    
+    func completeConnection(from nodeView: NodeView, at location: CGPoint) {
+        if let endNodeView = self.hitTest(location, with: nil) as? NodeView {
+            self.model.addConnection(between: nodeView.node, endNodeView.node)
+        }
+        
+        self.partialConnections.removeValue(forKey: nodeView)
+        self.setNeedsDisplay()
+    }
+    
+    func drawLine(start: CGPoint, end: CGPoint, lineWidth: CGFloat, color: UIColor) {
+        let path = UIBezierPath()
+        path.move(to: start)
+        path.addLine(to: end)
+        path.close()
+        
+        color.set()
+        path.lineWidth = lineWidth
+        path.stroke()
+    }
+    
+    override func draw(_ rect: CGRect) {
+        super.draw(self.bounds)
+        
+        for (nodeView, endPoint) in self.partialConnections {
+            let startPoint = CGPoint(x: nodeView.node.x, y: nodeView.node.y)
+            self.drawLine(start: startPoint, end: endPoint, lineWidth: 3.0, color: .lightGray)
+        }
+        
+        for connection in self.model.connections {
+            let startPoint = CGPoint(x: connection.nodeA.x, y: connection.nodeA.y)
+            let endPoint = CGPoint(x: connection.nodeB.x, y: connection.nodeB.y)
+            self.drawLine(start: startPoint, end: endPoint, lineWidth: 3.0, color: .darkGray)
+        }
     }
     
     func update() {
         for node in model.nodes {
             if self.nodeViews[node] == nil {
-                let nodeView = NodeView(node: node, gestureRecognizerDelegate: self.gestureRecognizerDelegate)
+                let nodeView = NodeView(modelView: self, node: node, drawingMode: self.drawingMode, gestureRecognizerDelegate: self.gestureRecognizerDelegate)
                 self.nodeViews[node] = nodeView
             }
         }
@@ -83,30 +172,53 @@ class NodeView: UIView {
     static let radius = 7.0
     static let touchTargetScale = 2.0
     
+    let modelView: ModelView
     let node: Node
+    var drawingMode: DrawingMode
+    var panGestureRecognizer: UIPanGestureRecognizer!
     
-    init(node: Node, gestureRecognizerDelegate: UIGestureRecognizerDelegate) {
+    init(modelView: ModelView, node: Node, drawingMode: DrawingMode, gestureRecognizerDelegate: UIGestureRecognizerDelegate) {
+        self.modelView = modelView
         self.node = node
+        self.drawingMode = drawingMode
         
         super.init(frame: CGRect.zero)
         
-        let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.panGestureRecognizerUpdate))
-        panGestureRecognizer.delegate = gestureRecognizerDelegate
-        panGestureRecognizer.minimumNumberOfTouches = 1
-        panGestureRecognizer.maximumNumberOfTouches = 1
-        self.addGestureRecognizer(panGestureRecognizer)
+        self.backgroundColor = .white
+        
+        self.panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.panGestureRecognizerUpdate))
+        self.panGestureRecognizer.delegate = gestureRecognizerDelegate
+        self.panGestureRecognizer.minimumNumberOfTouches = 1
+        self.panGestureRecognizer.maximumNumberOfTouches = 1
+        self.addGestureRecognizer(self.panGestureRecognizer)
+    }
+    
+    func setDrawingMode(_ drawingMode: DrawingMode) {
+        self.drawingMode = drawingMode
+        self.panGestureRecognizer.isEnabled = false
+        self.panGestureRecognizer.isEnabled = true
     }
     
     @objc func panGestureRecognizerUpdate(_ gestureRecognizer : UIPanGestureRecognizer) {
-        guard let superview = self.superview else {
-            return
-        }
+        let location = gestureRecognizer.location(in: self.modelView)
         
-        if gestureRecognizer.state == .changed {
-            let location = gestureRecognizer.location(in: superview)
-            self.node.x = location.x
-            self.node.y = location.y
-            self.update(in: superview)
+        if gestureRecognizer.state == .began {
+            if self.drawingMode == .connectNodes {
+                self.modelView.startConnection(from: self, at: location)
+            }
+        } else if gestureRecognizer.state == .changed {
+            if self.drawingMode == .connectNodes {
+                self.modelView.updateConnection(from: self, at: location)
+            } else if self.drawingMode == .constructNodes {
+                let location = gestureRecognizer.location(in: superview)
+                self.node.x = location.x
+                self.node.y = location.y
+                self.update(in: self.modelView)
+            }
+        } else {
+            if self.drawingMode == .connectNodes {
+                self.modelView.completeConnection(from: self, at: location)
+            }
         }
     }
     
@@ -123,13 +235,15 @@ class NodeView: UIView {
         )
         
         self.layer.cornerRadius = NodeView.radius
-        self.layer.borderColor = .init(gray: 0.25, alpha: 1.0)
+        self.layer.borderColor = UIColor.darkGray.cgColor
         self.layer.borderWidth = 3.0
         
         if self.superview != superview {
             self.removeFromSuperview()
             superview.addSubview(self)
         }
+        
+        self.superview!.setNeedsDisplay()
     }
     
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
@@ -266,9 +380,9 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     
     init() {
         self.model = Model()
-        self.modelView = ModelView(model: self.model)
         self.modeLabel = UILabel()
         self.drawingMode = .constructNodes
+        self.modelView = ModelView(model: self.model, drawingMode: self.drawingMode)
 
         super.init(frame: CGRect.zero)
 
@@ -310,6 +424,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             case .connectNodes:
                 self.doubleTapGestureRecognizer.isEnabled = false
         }
+        
+        self.modelView.setDrawingMode(self.drawingMode)
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
