@@ -50,6 +50,7 @@ class Model {
 class ModelView: UIView {
     
     let model: Model
+    var gestureRecognizerDelegate: UIGestureRecognizerDelegate!
     var nodeViews: [Node : NodeView]
     
     init(model: Model) {
@@ -62,7 +63,7 @@ class ModelView: UIView {
     func update() {
         for node in model.nodes {
             if self.nodeViews[node] == nil {
-                let nodeView = NodeView(node: node)
+                let nodeView = NodeView(node: node, gestureRecognizerDelegate: self.gestureRecognizerDelegate)
                 self.nodeViews[node] = nodeView
             }
         }
@@ -84,15 +85,15 @@ class NodeView: UIView {
     
     let node: Node
     
-    init(node: Node) {
+    init(node: Node, gestureRecognizerDelegate: UIGestureRecognizerDelegate) {
         self.node = node
         
         super.init(frame: CGRect.zero)
         
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.panGestureRecognizerUpdate))
+        panGestureRecognizer.delegate = gestureRecognizerDelegate
         panGestureRecognizer.minimumNumberOfTouches = 1
         panGestureRecognizer.maximumNumberOfTouches = 1
-        
         self.addGestureRecognizer(panGestureRecognizer)
     }
     
@@ -159,38 +160,37 @@ enum DrawingMode: String, CaseIterable {
     }
 }
 
-class DrawingModeGestureRecognizer: UIGestureRecognizer {
+class DrawingModeGestureRecognizer: UIGestureRecognizer, UIGestureRecognizerDelegate {
     
     var mode: DrawingMode = .constructNodes
     var trackedTouches: Set<UITouch> = []
     
-    func filter(forFingerTouches touches: Set<UITouch>, with event: UIEvent) -> Set<UITouch> {
-        let fingerTouches = touches.filter() { $0.type == .direct }
-        let otherTouches = touches.subtracting(fingerTouches)
-        
-        for touch in otherTouches {
-            self.ignore(touch, for: event)
-        }
-        
-        return fingerTouches
+    override init(target: Any?, action: Selector?) {
+        super.init(target: target, action: action)
+        self.delegate = self
     }
-    
-    func handleTouches(_ touches: Set<UITouch>, with event: UIEvent) {
-        let fingerTouches = self.filter(forFingerTouches: touches, with: event)
-        var newTouches = self.trackedTouches.union(fingerTouches).subtracting(self.trackedTouches)
-        
-        while !newTouches.isEmpty && (self.trackedTouches.count < DrawingMode.maxTouchCount) {
-            self.trackedTouches.insert(newTouches.popFirst()!)
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard touch.type == .direct else {
+            return false
         }
         
-        for touch in newTouches {
-            self.ignore(touch, for: event)
+        guard !self.trackedTouches.contains(touch) else {
+            return true
         }
+
+        guard self.trackedTouches.count < DrawingMode.maxTouchCount else {
+            return false
+        }
+
+        return true
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
-        super.touchesBegan(touches, with: event)
-        self.handleTouches(touches, with: event)
+        var newTouches = self.trackedTouches.union(touches).subtracting(self.trackedTouches)
+        while !newTouches.isEmpty && (self.trackedTouches.count < DrawingMode.maxTouchCount) {
+            self.trackedTouches.insert(newTouches.popFirst()!)
+        }
         
         guard self.trackedTouches.count > 0 else {
             if self.state == .possible {
@@ -212,13 +212,17 @@ class DrawingModeGestureRecognizer: UIGestureRecognizer {
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
-        super.touchesEnded(touches, with: event)
+        let touchesToIgnore = touches.subtracting(self.trackedTouches)
+        for touch in touchesToIgnore {
+            self.ignore(touch, for: event)
+        }
+        
         self.trackedTouches.subtract(touches)
         
         if self.trackedTouches.count > 0 {
             self.state = .changed
         } else {
-            self.state = .cancelled
+            self.state = .failed
         }
         
         self.updateMode()
@@ -231,7 +235,7 @@ class DrawingModeGestureRecognizer: UIGestureRecognizer {
         if self.trackedTouches.count > 0 {
             self.state = .changed
         } else {
-            self.state = .cancelled
+            self.state = .failed
         }
         
         self.updateMode()
@@ -253,7 +257,7 @@ class DrawingModeGestureRecognizer: UIGestureRecognizer {
     }
 }
 
-class SketchView: UIView {
+class SketchView: UIView, UIGestureRecognizerDelegate {
  
     var model: Model
     var modelView: ModelView
@@ -265,22 +269,27 @@ class SketchView: UIView {
         self.model = Model()
         self.modelView = ModelView(model: self.model)
         self.modeLabel = UILabel()
-        self.drawingMode = .connectNodes
+        self.drawingMode = .constructNodes
 
         super.init(frame: CGRect.zero)
+
+        self.isMultipleTouchEnabled = true
         
         self.addSubview(self.modelView)
+        self.modelView.gestureRecognizerDelegate = self
         self.modelView.update()
         
         self.addSubview(self.modeLabel)
         self.modeLabel.text = self.drawingMode.rawValue
-        
-        let doubleTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.doubleTapGestureRecognizerUpdate))
-        doubleTapGestureRecognizer.numberOfTapsRequired = 2
-        self.addGestureRecognizer(doubleTapGestureRecognizer)
+        self.modeLabel.textAlignment = .center
         
         let drawingModeGestureRecognizer = DrawingModeGestureRecognizer(target: self, action: #selector(self.drawingModeGestureRecognizerUpdate))
         self.addGestureRecognizer(drawingModeGestureRecognizer)
+        
+        let doubleTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.doubleTapGestureRecognizerUpdate))
+        doubleTapGestureRecognizer.delegate = self
+        doubleTapGestureRecognizer.numberOfTapsRequired = 2
+        self.addGestureRecognizer(doubleTapGestureRecognizer)
     }
     
     @objc func doubleTapGestureRecognizerUpdate(_ gestureRecognizer : UIPanGestureRecognizer) {
@@ -296,9 +305,13 @@ class SketchView: UIView {
         self.modeLabel.text = self.drawingMode.rawValue
     }
 
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
     override func layoutSubviews() {
         self.modelView.frame = self.bounds
-        self.modeLabel.frame = CGRect(origin: CGPoint.zero, size: CGSize(width: 250.0, height: 50.0))
+        self.modeLabel.frame = CGRect(origin: CGPoint.zero, size: CGSize(width: 200.0, height: 50.0))
         self.modeLabel.center = CGPoint(
             x: self.center.x,
             y: self.frame.height - (self.modeLabel.frame.height / 2.0)
