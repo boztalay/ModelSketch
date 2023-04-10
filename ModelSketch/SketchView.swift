@@ -168,13 +168,10 @@ class DrawingModeGestureRecognizer: UIGestureRecognizer, UIGestureRecognizerDele
     override init(target: Any?, action: Selector?) {
         super.init(target: target, action: action)
         self.delegate = self
+        self.allowedTouchTypes = [NSNumber(integerLiteral: UITouch.TouchType.direct.rawValue)]
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        guard touch.type == .direct else {
-            return false
-        }
-        
         guard !self.trackedTouches.contains(touch) else {
             return true
         }
@@ -264,6 +261,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     var modeLabel: UILabel
     
     var drawingMode: DrawingMode
+    var drawingModeGestureRecognizer: DrawingModeGestureRecognizer!
+    var doubleTapGestureRecognizer: UITapGestureRecognizer!
     
     init() {
         self.model = Model()
@@ -283,13 +282,14 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.modeLabel.text = self.drawingMode.rawValue
         self.modeLabel.textAlignment = .center
         
-        let drawingModeGestureRecognizer = DrawingModeGestureRecognizer(target: self, action: #selector(self.drawingModeGestureRecognizerUpdate))
-        self.addGestureRecognizer(drawingModeGestureRecognizer)
+        self.drawingModeGestureRecognizer = DrawingModeGestureRecognizer(target: self, action: #selector(self.drawingModeGestureRecognizerUpdate))
+        self.addGestureRecognizer(self.drawingModeGestureRecognizer)
         
-        let doubleTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.doubleTapGestureRecognizerUpdate))
-        doubleTapGestureRecognizer.delegate = self
-        doubleTapGestureRecognizer.numberOfTapsRequired = 2
-        self.addGestureRecognizer(doubleTapGestureRecognizer)
+        self.doubleTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.doubleTapGestureRecognizerUpdate))
+        self.doubleTapGestureRecognizer.delegate = self
+        self.doubleTapGestureRecognizer.numberOfTapsRequired = 2
+        self.doubleTapGestureRecognizer.allowedTouchTypes = [NSNumber(integerLiteral: UITouch.TouchType.pencil.rawValue)]
+        self.addGestureRecognizer(self.doubleTapGestureRecognizer)
     }
     
     @objc func doubleTapGestureRecognizerUpdate(_ gestureRecognizer : UIPanGestureRecognizer) {
@@ -303,6 +303,13 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     @objc func drawingModeGestureRecognizerUpdate(_ gestureRecognizer : DrawingModeGestureRecognizer) {
         self.drawingMode = gestureRecognizer.mode
         self.modeLabel.text = self.drawingMode.rawValue
+        
+        switch (self.drawingMode) {
+            case .constructNodes:
+                self.doubleTapGestureRecognizer.isEnabled = true
+            case .connectNodes:
+                self.doubleTapGestureRecognizer.isEnabled = false
+        }
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
