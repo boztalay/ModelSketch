@@ -61,6 +61,10 @@ class Connection: Equatable {
         self.nodeB = nodeB
     }
     
+    func contains(_ node: Node) -> Bool {
+        return (self.nodeA == node || self.nodeB == node)
+    }
+    
     static func == (lhs: Connection, rhs: Connection) -> Bool {
         return ((lhs.nodeA == rhs.nodeA) && (lhs.nodeB == rhs.nodeB)) || ((lhs.nodeA == rhs.nodeB) && (lhs.nodeB == rhs.nodeA))
     }
@@ -84,7 +88,20 @@ class Model {
         self.nodes.append(Node(x: x, y: y))
     }
     
+    func deleteNode(_ node: Node) {
+        guard let index = self.nodes.firstIndex(of: node) else {
+            return
+        }
+        
+        self.nodes.remove(at: index)
+        self.connections.removeAll(where: { $0.contains(node) })
+    }
+    
     func connect(between nodeA: Node, _ nodeB: Node) {
+        guard nodeA != nodeB else {
+            return
+        }
+        
         let connection = Connection(nodeA: nodeA, nodeB: nodeB)
         guard !self.connections.contains(connection) else {
             return
