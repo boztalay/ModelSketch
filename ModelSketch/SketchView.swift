@@ -174,10 +174,10 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     var drawingModeLabel: UILabel
     var drawingMode: DrawingMode
     
-    var nodeViewBeingMoved: NodeView?
+    var nodeViewBeingPanned: NodeView?
     
     var drawingModeGestureRecognizer: InstantPanGestureRecognizer!
-    var moveNodeGestureRecognizer: UIPanGestureRecognizer!
+    var nodePanGestureRecognizer: UIPanGestureRecognizer!
     var createNodeGestureRecognizer: UITapGestureRecognizer!
     
     init() {
@@ -203,11 +203,11 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.drawingModeGestureRecognizer.maximumNumberOfTouches = DrawingMode.maxTouchCount
         self.addGestureRecognizer(self.drawingModeGestureRecognizer)
         
-        self.moveNodeGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.moveNodeGestureRecognizerUpdate))
-        self.moveNodeGestureRecognizer.delegate = self
-        self.moveNodeGestureRecognizer.minimumNumberOfTouches = 1
-        self.moveNodeGestureRecognizer.maximumNumberOfTouches = 1
-        self.addGestureRecognizer(self.moveNodeGestureRecognizer)
+        self.nodePanGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
+        self.nodePanGestureRecognizer.delegate = self
+        self.nodePanGestureRecognizer.minimumNumberOfTouches = 1
+        self.nodePanGestureRecognizer.maximumNumberOfTouches = 1
+        self.addGestureRecognizer(self.nodePanGestureRecognizer)
         
         self.createNodeGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.createNodeGestureRecognizerUpdate))
         self.createNodeGestureRecognizer.delegate = self
@@ -240,7 +240,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         }
     }
 
-    @objc func moveNodeGestureRecognizerUpdate(_ gestureRecognizer : UIPanGestureRecognizer) {
+    @objc func nodePanGestureRecognizerUpdate(_ gestureRecognizer : UIPanGestureRecognizer) {
         let location = gestureRecognizer.location(in: self.modelView)
 
         if gestureRecognizer.state == .began {
@@ -248,20 +248,36 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
                 return
             }
 
-            self.nodeViewBeingMoved = nodeView
+            self.nodeViewBeingPanned = nodeView
+            
+            if self.drawingMode == .connectNodes {
+                self.modelView.startConnection(from: nodeView, at: location)
+            }
         }
         
         if gestureRecognizer.state == .changed {
-            guard let nodeViewBeingMoved = self.nodeViewBeingMoved else {
+            guard let nodeViewBeingPanned = self.nodeViewBeingPanned else {
                 return
             }
             
-            nodeViewBeingMoved.node.cgPoint = location
-            self.modelView.update()
+            if self.drawingMode == .constructNodes {
+                nodeViewBeingPanned.node.cgPoint = location
+                self.modelView.update()
+            } else if self.drawingMode == .connectNodes {
+                self.modelView.updateConnection(from: nodeViewBeingPanned, at: location)
+            }
         }
         
         if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
-            self.nodeViewBeingMoved = nil
+            guard let nodeViewBeingPanned = self.nodeViewBeingPanned else {
+                return
+            }
+            
+            if self.drawingMode == .connectNodes {
+                self.modelView.completeConnection(from: nodeViewBeingPanned, at: location)
+            }
+            
+            self.nodeViewBeingPanned = nil
         }
     }
     
