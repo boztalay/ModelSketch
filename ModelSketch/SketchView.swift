@@ -28,7 +28,7 @@ enum DrawingMode: String, CaseIterable {
 class NodeView: UIView {
     
     static let radius = 7.0
-    static let touchTargetScale = 3.0
+    static let touchTargetScale = 1.5
     
     let modelView: ModelView
     let node: Node
@@ -212,7 +212,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.drawingModeGestureRecognizer.maximumNumberOfTouches = DrawingMode.maxTouchCount
         self.addGestureRecognizer(self.drawingModeGestureRecognizer)
         
-        self.nodePanGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
+        self.nodePanGestureRecognizer = InstantPanGestureRecognizer(target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
         self.nodePanGestureRecognizer.delegate = self
         self.nodePanGestureRecognizer.minimumNumberOfTouches = 1
         self.nodePanGestureRecognizer.maximumNumberOfTouches = 1
@@ -258,6 +258,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
 
         if gestureRecognizer.state == .began {
             guard let nodeView = self.modelView.hitTest(location, with: nil) as? NodeView else {
+                gestureRecognizer.isEnabled = false
+                gestureRecognizer.isEnabled = true
                 return
             }
 
