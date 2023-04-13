@@ -15,6 +15,8 @@
 		FB077B4529E654DE004F0857 /* InstantPanGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B4429E654DE004F0857 /* InstantPanGestureRecognizer.swift */; };
 		FB077B4729E65531004F0857 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B4629E65531004F0857 /* Model.swift */; };
 		FB077B4929E722ED004F0857 /* PencilDeleteGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B4829E722ED004F0857 /* PencilDeleteGestureRecognizer.swift */; };
+		FB077B4B29E8BECD004F0857 /* PencilStrokeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */; };
+		FB077B4E29E8C317004F0857 /* Wave in Frameworks */ = {isa = PBXBuildFile; productRef = FB077B4D29E8C317004F0857 /* Wave */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +29,7 @@
 		FB077B4429E654DE004F0857 /* InstantPanGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstantPanGestureRecognizer.swift; sourceTree = "<group>"; };
 		FB077B4629E65531004F0857 /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		FB077B4829E722ED004F0857 /* PencilDeleteGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilDeleteGestureRecognizer.swift; sourceTree = "<group>"; };
+		FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilStrokeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,6 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FB077B4E29E8C317004F0857 /* Wave in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -62,6 +66,7 @@
 				FB077B3029E4720F004F0857 /* ModelSketchApp.swift */,
 				FB077B3229E4720F004F0857 /* ContentView.swift */,
 				FB077B4229E472CA004F0857 /* SketchView.swift */,
+				FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */,
 				FB077B4829E722ED004F0857 /* PencilDeleteGestureRecognizer.swift */,
 				FB077B4429E654DE004F0857 /* InstantPanGestureRecognizer.swift */,
 				FB077B4629E65531004F0857 /* Model.swift */,
@@ -95,6 +100,9 @@
 			dependencies = (
 			);
 			name = ModelSketch;
+			packageProductDependencies = (
+				FB077B4D29E8C317004F0857 /* Wave */,
+			);
 			productName = ModelSketch;
 			productReference = FB077B2D29E4720F004F0857 /* ModelSketch.app */;
 			productType = "com.apple.product-type.application";
@@ -123,6 +131,9 @@
 				Base,
 			);
 			mainGroup = FB077B2429E4720F004F0857;
+			packageReferences = (
+				FB077B4C29E8C317004F0857 /* XCRemoteSwiftPackageReference "Wave" */,
+			);
 			productRefGroup = FB077B2E29E4720F004F0857 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -149,6 +160,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FB077B4B29E8BECD004F0857 /* PencilStrokeView.swift in Sources */,
 				FB077B4729E65531004F0857 /* Model.swift in Sources */,
 				FB077B4929E722ED004F0857 /* PencilDeleteGestureRecognizer.swift in Sources */,
 				FB077B3329E4720F004F0857 /* ContentView.swift in Sources */,
@@ -361,6 +373,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		FB077B4C29E8C317004F0857 /* XCRemoteSwiftPackageReference "Wave" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jtrivedi/Wave";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FB077B4D29E8C317004F0857 /* Wave */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FB077B4C29E8C317004F0857 /* XCRemoteSwiftPackageReference "Wave" */;
+			productName = Wave;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = FB077B2529E4720F004F0857 /* Project object */;
 }

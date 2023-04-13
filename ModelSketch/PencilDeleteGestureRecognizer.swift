@@ -251,30 +251,20 @@ class PencilStroke {
             path.addLine(to: point)
         }
         path.close()
-
-        print("\nBounds: \(path.bounds), area: \(path.bounds.area), center: \(path.bounds.center), aspect: \(path.bounds.aspectRatio)")
         
         guard path.bounds.area > 50.0 && path.bounds.area < 1200.0 else {
-            print("Nope (area)")
             return nil
         }
         
         guard path.bounds.aspectRatio > 0.50 && path.bounds.aspectRatio < 2.0 else {
-            print("Nope (aspect)")
             return nil
         }
         
         let allowedDistanceBetweenEndpoints = pow(path.bounds.area, 1.35) / 250.0
-        print("Allowed distance between endpoints: \(allowedDistanceBetweenEndpoints)")
-        
         let distanceBetweenEndpoints = self.points.first!.distance(to: self.points.last!)
-        print("Distance between endpoints: \(distanceBetweenEndpoints)")
         guard distanceBetweenEndpoints < allowedDistanceBetweenEndpoints else {
-            print("Nope (endpoints)")
             return nil
         }
-        
-        print("Yup")
         
         return path.bounds.center
     }

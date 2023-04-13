@@ -177,6 +177,8 @@ class ModelView: UIView {
 class SketchView: UIView, UIGestureRecognizerDelegate {
  
     var model: Model
+
+    var pencilStrokeView: PencilStrokeView
     var modelView: ModelView
     var drawingModeLabel: UILabel
     var drawingMode: DrawingMode
@@ -190,6 +192,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     
     init() {
         self.model = Model()
+        self.pencilStrokeView = PencilStrokeView()
         self.drawingModeLabel = UILabel()
         self.drawingMode = .constructNodes
         self.modelView = ModelView(model: self.model, drawingMode: self.drawingMode)
@@ -198,6 +201,10 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
 
         self.isMultipleTouchEnabled = true
         self.backgroundColor = .white
+        
+        self.addSubview(self.pencilStrokeView)
+        self.pencilStrokeView.panGestureRecognizer.delegate = self
+        self.addGestureRecognizer(self.pencilStrokeView.panGestureRecognizer)
         
         self.addSubview(self.modelView)
         self.modelView.update()
@@ -305,8 +312,6 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     }
     
     @objc func deleteGestureRecognizerUpdate(_ gestureRecognizer : PencilDeleteGestureRecognizer) {
-        self.setNeedsDisplay()
-        
         if gestureRecognizer.state == .ended {
             if let intersection = gestureRecognizer.intersection {
                 if let nodeView = self.modelView.hitTest(intersection, with: nil) as? NodeView {
@@ -317,63 +322,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         }
     }
     
-    override func draw(_ rect: CGRect) {
-        super.draw(rect)
-        
-        let strokes = self.deleteGestureRecognizer.strokes
-        var lines = [PencilLine]()
-        
-        for stroke in strokes {
-            guard stroke.points.count > 1 else {
-                continue
-            }
-            
-            let strokePath = UIBezierPath()
-            strokePath.move(to: stroke.points.first!)
-            for point in stroke.points.dropFirst() {
-                strokePath.addLine(to: point)
-            }
-            
-            UIColor.red.set()
-            strokePath.lineWidth = 2.0
-            strokePath.stroke()
-            
-            guard let strokeLine = stroke.snapToLine() else {
-                continue
-            }
-            
-            lines.append(strokeLine)
-            
-            let linePath = UIBezierPath()
-            linePath.move(to: strokeLine.start)
-            linePath.addLine(to: strokeLine.end)
-            UIColor.green.set()
-            linePath.lineWidth = 2.0
-            linePath.stroke()
-        }
-        
-        guard lines.count == 2 else {
-            return
-        }
-        
-        guard let intersection = lines[0].intersection(with: lines[1]) else {
-            return
-        }
-        
-        let circle = UIBezierPath(
-            ovalIn: CGRect(
-                x: intersection.x - 2.0,
-                y: intersection.y - 2.0,
-                width: 4.0,
-                height: 4.0
-            )
-        )
-        
-        UIColor.blue.set()
-        circle.fill()
-    }
-    
     override func layoutSubviews() {
+        self.pencilStrokeView.frame = self.bounds
         self.modelView.frame = self.bounds
         self.drawingModeLabel.frame = CGRect(origin: CGPoint.zero, size: CGSize(width: 200.0, height: 50.0))
         self.drawingModeLabel.center = CGPoint(
