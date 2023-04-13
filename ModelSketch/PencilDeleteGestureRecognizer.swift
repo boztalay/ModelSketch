@@ -20,6 +20,31 @@ extension CGFloat {
     }
 }
 
+extension CGPoint {
+    
+    func distance(to other: CGPoint) -> CGFloat {
+        return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
+    }
+}
+
+extension CGRect {
+    
+    var area: CGFloat {
+        return self.size.width * self.size.height
+    }
+    
+    var center: CGPoint {
+        return CGPoint(
+            x: self.origin.x + (self.width / 2.0),
+            y: self.origin.y + (self.height / 2.0)
+        )
+    }
+    
+    var aspectRatio: CGFloat {
+        return self.size.width / self.size.height
+    }
+}
+
 class PencilLine {
     
     let start: CGPoint
@@ -47,6 +72,8 @@ class PencilLine {
     func calculateError(from points: [CGPoint]) {
         self.error = 0.0
 
+        // NOTE: Error is typically calculated as the sum of the squares of each
+        //       point's error, but it feels better to just accumulate the errors
         for point in points {
             let lineY = self.slope * point.x + self.yIntercept
             self.error += abs(lineY - point.y)
@@ -212,6 +239,45 @@ class PencilStroke {
         
         return reflectedStroke
     }
+    
+    func approximateCircleCenter() -> CGPoint? {
+        guard self.points.count > 2 else {
+            return nil
+        }
+        
+        let path = UIBezierPath()
+        path.move(to: self.points.first!)
+        for point in self.points.dropFirst() {
+            path.addLine(to: point)
+        }
+        path.close()
+
+        print("\nBounds: \(path.bounds), area: \(path.bounds.area), center: \(path.bounds.center), aspect: \(path.bounds.aspectRatio)")
+        
+        guard path.bounds.area > 50.0 && path.bounds.area < 1200.0 else {
+            print("Nope (area)")
+            return nil
+        }
+        
+        guard path.bounds.aspectRatio > 0.50 && path.bounds.aspectRatio < 2.0 else {
+            print("Nope (aspect)")
+            return nil
+        }
+        
+        let allowedDistanceBetweenEndpoints = pow(path.bounds.area, 1.35) / 250.0
+        print("Allowed distance between endpoints: \(allowedDistanceBetweenEndpoints)")
+        
+        let distanceBetweenEndpoints = self.points.first!.distance(to: self.points.last!)
+        print("Distance between endpoints: \(distanceBetweenEndpoints)")
+        guard distanceBetweenEndpoints < allowedDistanceBetweenEndpoints else {
+            print("Nope (endpoints)")
+            return nil
+        }
+        
+        print("Yup")
+        
+        return path.bounds.center
+    }
 }
 
 class PencilDeleteGestureRecognizer: InstantPanGestureRecognizer {
@@ -283,5 +349,51 @@ class PencilDeleteGestureRecognizer: InstantPanGestureRecognizer {
         }
         
         self.strokes = []
+    }
+}
+
+class PencilCircleGestureRecognizer: InstantPanGestureRecognizer {
+    
+    var stroke: PencilStroke?
+    var circleCenter: CGPoint?
+    
+    override init(target: Any?, action: Selector?) {
+        self.stroke = nil
+        
+        super.init(target: target, action: action)
+
+        self.minimumNumberOfTouches = 1
+        self.maximumNumberOfTouches = 1
+        self.allowedTouchTypes = [NSNumber(integerLiteral: UITouch.TouchType.pencil.rawValue)]
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesBegan(touches, with: event)
+
+        self.circleCenter = nil
+        self.stroke = PencilStroke()
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesMoved(touches, with: event)
+        guard let stroke = self.stroke else {
+            return
+        }
+        
+        let location = self.location(in: self.view)
+        stroke.add(point: location)
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesEnded(touches, with: event)
+        guard let stroke = self.stroke else {
+            return
+        }
+        
+        if let circleCenter = stroke.approximateCircleCenter() {
+            self.circleCenter = circleCenter
+        }
+        
+        self.stroke = nil
     }
 }

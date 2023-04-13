@@ -185,7 +185,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     
     var drawingModeGestureRecognizer: InstantPanGestureRecognizer!
     var nodePanGestureRecognizer: UIPanGestureRecognizer!
-    var createNodeGestureRecognizer: UITapGestureRecognizer!
+    var createNodeGestureRecognizer: PencilCircleGestureRecognizer!
     var deleteGestureRecognizer: PencilDeleteGestureRecognizer!
     
     init() {
@@ -218,9 +218,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.nodePanGestureRecognizer.maximumNumberOfTouches = 1
         self.addGestureRecognizer(self.nodePanGestureRecognizer)
         
-        self.createNodeGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.createNodeGestureRecognizerUpdate))
+        self.createNodeGestureRecognizer = PencilCircleGestureRecognizer(target: self, action: #selector(self.createNodeGestureRecognizerUpdate))
         self.createNodeGestureRecognizer.delegate = self
-        self.createNodeGestureRecognizer.numberOfTapsRequired = 2
         self.addGestureRecognizer(self.createNodeGestureRecognizer)
         
         self.deleteGestureRecognizer = PencilDeleteGestureRecognizer(target: self, action: #selector(self.deleteGestureRecognizerUpdate))
@@ -296,11 +295,12 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         }
     }
     
-    @objc func createNodeGestureRecognizerUpdate(_ gestureRecognizer : UITapGestureRecognizer) {
+    @objc func createNodeGestureRecognizerUpdate(_ gestureRecognizer : PencilCircleGestureRecognizer) {
         if gestureRecognizer.state == .ended {
-            let location = gestureRecognizer.location(in: self)
-            self.model.createNode(at: location)
-            self.modelView.update()
+            if let circleCenter = gestureRecognizer.circleCenter {
+                self.model.createNode(at: circleCenter)
+                self.modelView.update()
+            }
         }
     }
     
