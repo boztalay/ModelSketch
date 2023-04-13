@@ -270,7 +270,7 @@ class PencilStroke {
     }
 }
 
-class PencilDeleteGestureRecognizer: InstantPanGestureRecognizer {
+class PencilDeleteGestureRecognizer: PencilInstantPanGestureRecognizer {
     
     static let strokeTimeout = 0.4
     
@@ -280,12 +280,7 @@ class PencilDeleteGestureRecognizer: InstantPanGestureRecognizer {
     
     override init(target: Any?, action: Selector?) {
         self.strokes = []
-        
         super.init(target: target, action: action)
-
-        self.minimumNumberOfTouches = 1
-        self.maximumNumberOfTouches = 1
-        self.allowedTouchTypes = [NSNumber(integerLiteral: UITouch.TouchType.pencil.rawValue)]
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
@@ -342,19 +337,14 @@ class PencilDeleteGestureRecognizer: InstantPanGestureRecognizer {
     }
 }
 
-class PencilCircleGestureRecognizer: InstantPanGestureRecognizer {
+class PencilCircleGestureRecognizer: PencilInstantPanGestureRecognizer {
     
     var stroke: PencilStroke?
     var circleCenter: CGPoint?
     
     override init(target: Any?, action: Selector?) {
         self.stroke = nil
-        
         super.init(target: target, action: action)
-
-        self.minimumNumberOfTouches = 1
-        self.maximumNumberOfTouches = 1
-        self.allowedTouchTypes = [NSNumber(integerLiteral: UITouch.TouchType.pencil.rawValue)]
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {

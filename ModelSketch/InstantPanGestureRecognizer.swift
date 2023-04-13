@@ -14,3 +14,14 @@ class InstantPanGestureRecognizer: UIPanGestureRecognizer {
         state = .began
     }
 }
+
+class PencilInstantPanGestureRecognizer: InstantPanGestureRecognizer {
+    
+    override init(target: Any?, action: Selector?) {
+        super.init(target: target, action: action)
+
+        self.minimumNumberOfTouches = 1
+        self.maximumNumberOfTouches = 1
+        self.allowedTouchTypes = [NSNumber(integerLiteral: UITouch.TouchType.pencil.rawValue)]
+    }
+}

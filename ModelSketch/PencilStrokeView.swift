@@ -10,6 +10,9 @@ import Wave
 
 class AnimatedPencilStroke {
     
+    static let startingWhite = 0.70
+    static let startingAlpha = 0.70
+    
     let stroke: PencilStroke
     var color: UIColor
     var animator: SpringAnimator<CGFloat>
@@ -17,14 +20,14 @@ class AnimatedPencilStroke {
     
     init() {
         self.stroke = PencilStroke()
-        self.color = UIColor.lightGray
+        self.color = UIColor(white: AnimatedPencilStroke.startingWhite, alpha: AnimatedPencilStroke.startingAlpha)
         self.animator = SpringAnimator<CGFloat>(spring: Spring.defaultAnimated)
-        self.animator.value = 1.0
+        self.animator.value = AnimatedPencilStroke.startingAlpha
         self.animator.target = 0.0
         
         self.animator.valueChanged = { [weak self] value in
             if let unwrappedSelf = self {
-                unwrappedSelf.color = UIColor(white: 0.70, alpha: value)
+                unwrappedSelf.color = UIColor(white: AnimatedPencilStroke.startingWhite, alpha: value)
                 unwrappedSelf.owningView?.setNeedsDisplay()
             }
         }
@@ -38,7 +41,7 @@ class AnimatedPencilStroke {
 class PencilStrokeView: UIView {
     
     var strokes: [AnimatedPencilStroke]
-    var panGestureRecognizer: UIPanGestureRecognizer!
+    var panGestureRecognizer: PencilInstantPanGestureRecognizer!
     
     var currentStroke: AnimatedPencilStroke? {
         return self.strokes.last
@@ -51,12 +54,12 @@ class PencilStrokeView: UIView {
         
         self.backgroundColor = .white
         
-        self.panGestureRecognizer = InstantPanGestureRecognizer(target: self, action: #selector(panGestureRecognizerUpdate))
+        self.panGestureRecognizer = PencilInstantPanGestureRecognizer(target: self, action: #selector(panGestureRecognizerUpdate))
         self.panGestureRecognizer.minimumNumberOfTouches = 1
         self.panGestureRecognizer.maximumNumberOfTouches = 1
     }
     
-    @objc func panGestureRecognizerUpdate(_ gestureRecognizer : UIPanGestureRecognizer) {
+    @objc func panGestureRecognizerUpdate(_ gestureRecognizer : PencilInstantPanGestureRecognizer) {
         let location = gestureRecognizer.location(in: self)
 
         if gestureRecognizer.state == .began {
