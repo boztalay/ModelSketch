@@ -30,6 +30,10 @@ class PencilLine {
         return (self.end.y - self.start.y) / (self.end.x - self.start.x)
     }
     
+    var angle: CGFloat {
+        return atan(self.slope) * 180.0 / CGFloat.pi
+    }
+    
     var yIntercept: CGFloat {
         return self.start.y - (self.slope * self.start.x)
     }
@@ -63,6 +67,10 @@ class PencilLine {
         let upperY = max(self.start.y, self.end.y)
         
         return (point.x >= lowerX && point.x <= upperX) && (point.y >= lowerY && point.y <= upperY)
+    }
+    
+    func angle(from other: PencilLine) -> CGFloat {
+        return other.angle - self.angle
     }
     
     func intersection(with other: PencilLine) -> CGPoint? {
@@ -227,6 +235,8 @@ class PencilDeleteGestureRecognizer: InstantPanGestureRecognizer {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesBegan(touches, with: event)
 
+        self.intersection = nil
+
         if let lastStrokeEndedTime = self.lastStrokeEndedTime {
             let elapsedTime = Date().timeIntervalSince(lastStrokeEndedTime)
             if elapsedTime > PencilDeleteGestureRecognizer.strokeTimeout {
@@ -234,10 +244,8 @@ class PencilDeleteGestureRecognizer: InstantPanGestureRecognizer {
             }
         }
         
-        self.intersection = nil
-        
-        if self.strokes.count > 2 {
-            self.strokes = Array<PencilStroke>(self.strokes.dropFirst())
+        if self.strokes.count >= 2 {
+            self.strokes = []
         }
 
         self.strokes.append(PencilStroke())
@@ -264,7 +272,14 @@ class PencilDeleteGestureRecognizer: InstantPanGestureRecognizer {
         }
         
         if let lineA = self.strokes[0].snapToLine(), let lineB = self.strokes[1].snapToLine() {
-            self.intersection = lineA.intersection(with: lineB)
+            var angle = abs(lineA.angle(from: lineB))
+            if angle > 90.0 {
+                angle = 180.0 - angle
+            }
+            
+            if angle >= 20.0 {
+                self.intersection = lineA.intersection(with: lineB)
+            }
         }
         
         self.strokes = []
