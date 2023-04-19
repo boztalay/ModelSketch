@@ -29,6 +29,20 @@ extension CGPoint {
         
         return points
     }
+    
+    func adding(_ other: CGPoint) -> CGPoint {
+        return CGPoint(
+            x: self.x + other.x,
+            y: self.y + other.y
+        )
+    }
+    
+    func subtracting(_ other: CGPoint) -> CGPoint {
+        return CGPoint(
+            x: self.x - other.x,
+            y: self.y - other.y
+        )
+    }
 }
 
 extension CGRect {

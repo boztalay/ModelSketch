@@ -12,38 +12,37 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
     static let hardPressForceThreshold = 1.5
     
     let modelView: ModelView
-    
     var hysteresis: CGFloat = NodeView.radius
-    var startPoint: CGPoint?
+
     var nodeView: NodeView?
     var isHardPress: Bool
+    var lastLocation: CGPoint?
+    var translationDelta: CGPoint?
 
     init(modelView: ModelView, target: Any?, action: Selector?) {
         self.modelView = modelView
         self.isHardPress = false
 
         super.init(target: target, action: action)
-        
-        // TODO: Allow non-pencil touches
+
         self.minimumNumberOfTouches = 1
         self.maximumNumberOfTouches = 1
-        self.allowedTouchTypes = [NSNumber(integerLiteral: UITouch.TouchType.pencil.rawValue)]
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesBegan(touches, with: event)
-        
-        self.startPoint = nil
+
         self.nodeView = nil
         self.isHardPress = false
+        self.lastLocation = nil
+        self.translationDelta = nil
     
         let location = self.location(in: self.view)
         guard let nodeView = self.modelView.getNodeView(at: location) else {
             self.state = .failed
             return
         }
-        
-        self.startPoint = location
+
         self.nodeView = nodeView
     }
     
@@ -54,9 +53,14 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
             return
         }
         
-        if state == .possible {
-            let translation = self.translation(in: self.view).distance(to: .zero)
+        let location = self.location(in: self.view)
+        if let lastLocation = self.lastLocation {
+            self.translationDelta = location.subtracting(lastLocation)
+        }
 
+        self.lastLocation = location
+        
+        if self.state == .possible {
             let force = touches.first!.force
             self.isHardPress = (force > NodePanGestureRecognizer.hardPressForceThreshold)
             
@@ -66,9 +70,12 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
                 nodeView.setHighlightState(.normal)
             }
             
-            if translation > self.hysteresis {
+            let distanceMoved = self.translation(in: self.view).distance(to: .zero)
+            if distanceMoved > self.hysteresis {
                 self.state = .began
             }
+        } else if self.state == .began {
+            self.state = .changed
         }
     }
     

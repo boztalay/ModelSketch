@@ -235,8 +235,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         if gestureRecognizer.state == .changed {
             if gestureRecognizer.isHardPress {
                 self.modelView.updateConnection(from: nodeView, at: location)
-            } else {
-                nodeView.node.cgPoint = location
+            } else if let translationDelta = gestureRecognizer.translationDelta {
+                nodeView.node.cgPoint = nodeView.node.cgPoint.adding(translationDelta)
                 self.modelView.update()
             }
         }
