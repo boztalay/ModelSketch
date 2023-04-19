@@ -10,15 +10,13 @@ import UIKit
 
 class GestureTrainerView: UIView {
     
-    var pencilStrokeView: PencilStrokeView
+    var pencilStrokeView: PencilStrokeView!
     
     init() {
-        self.pencilStrokeView = PencilStrokeView()
-        
         super.init(frame: .zero)
         
+        self.pencilStrokeView = PencilStrokeView()
         self.addSubview(self.pencilStrokeView)
-        self.addGestureRecognizer(self.pencilStrokeView.panGestureRecognizer)
     }
     
     override func layoutSubviews() {
@@ -33,7 +31,7 @@ class GestureTrainerView: UIView {
 struct RepresentedGestureTrainerView: UIViewRepresentable {
     typealias UIViewType = GestureTrainerView
     
-    @State var strokeCompletion: (UIImage) -> ()
+    @State var strokeCompletion: (PencilStroke) -> ()
 
     func makeUIView(context: Context) -> GestureTrainerView {
         let view = GestureTrainerView()

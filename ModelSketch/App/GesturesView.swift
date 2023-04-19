@@ -7,39 +7,16 @@
 
 import SwiftUI
 
-enum TrainableGesture: String, CaseIterable, Identifiable {
-    var id: Self { self }
-    
-    case create
-    case scratch
-    
-    var friendlyName: String {
-        switch self {
-            case .create:
-                return "Create 'O'"
-            case .scratch:
-                return "Scratch"
-        }
-    }
-}
-
-struct LabeledImage {
-    let image: UIImage
-    let label: TrainableGesture
-    let date: Date
-    
-    init(image: UIImage, label: TrainableGesture) {
-        self.image = image
-        self.label = label
-        self.date = Date()
-    }
+struct LabeledStroke {
+    let stroke: PencilStroke
+    let label: PencilGesture
 }
 
 struct GesturesView: View {
     
-    @State private var selectedGesture = TrainableGesture.create
+    @State private var selectedGesture = PencilGesture.create
     @State private var strokeImage = UIImage(systemName: "pencil.line")!
-    @State private var images = [LabeledImage]()
+    @State private var labeledStrokes = [LabeledStroke]()
     
     var body: some View {
         HStack {
@@ -51,7 +28,7 @@ struct GesturesView: View {
                     Spacer()
                 }
                 Picker("Gesture to Train", selection: $selectedGesture) {
-                    ForEach(TrainableGesture.allCases) { gesture in
+                    ForEach(PencilGesture.allCases) { gesture in
                         Text(gesture.friendlyName)
                     }
                 }.pickerStyle(.menu)
@@ -66,22 +43,30 @@ struct GesturesView: View {
         }
     }
     
-    func strokeCompletion(_ image: UIImage) {
-        strokeImage = image
-        self.images.append(LabeledImage(image: image, label: self.selectedGesture))
+    func strokeCompletion(_ stroke: PencilStroke) {
+        guard let image = stroke.renderImage() else {
+            return
+        }
+
+        self.strokeImage = image
+        self.labeledStrokes.append(LabeledStroke(stroke: stroke, label: self.selectedGesture))
     }
     
     func saveImages() {
-        for image in self.images {
-            let data = image.image.pngData()!
+        for labeledStroke in self.labeledStrokes {
+            guard let image = labeledStroke.stroke.renderImage() else {
+                continue
+            }
+            
+            let data = image.pngData()!
             let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            let directoryUrl = documentsUrl.appending(component: "labeled_gestures").appending(component: image.label.rawValue)
+            let directoryUrl = documentsUrl.appending(component: "labeled_gestures").appending(component: labeledStroke.label.rawValue)
             try! FileManager.default.createDirectory(at: directoryUrl, withIntermediateDirectories: true)
             let fileUrl = directoryUrl.appending(path: UUID().uuidString).appendingPathExtension("png")
             try! data.write(to: fileUrl)
         }
         
-        self.images = []
+        self.labeledStrokes = []
     }
 }
 

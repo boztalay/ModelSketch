@@ -1,5 +1,5 @@
 //
-//  PencilStroke.swift
+//  PencilGestureRecognizer.swift
 //  ModelSketch
 //
 //  Created by Ben Oztalay on 4/12/23.
@@ -8,7 +8,7 @@
 import CoreML
 import UIKit
 
-enum PencilGestureClass: String, CaseIterable, Identifiable {
+enum PencilGesture: String, CaseIterable, Identifiable {
     var id: Self { self }
     
     case create
@@ -34,7 +34,7 @@ class PencilStroke {
     private(set) var points: [CGPoint]
     private(set) var path: UIBezierPath?
     private(set) var image: UIImage?
-    private(set) var gesture: PencilGestureClass?
+    private(set) var gesture: PencilGesture?
     
     var pathFrame: CGRect? {
         guard points.count > 1 else {
@@ -84,12 +84,12 @@ class PencilStroke {
     }
     
     func renderImage() -> UIImage? {
-        guard let pathFrame = self.pathFrame else {
-            return nil
-        }
-        
         guard self.image == nil else {
             return self.image
+        }
+
+        guard let pathFrame = self.pathFrame else {
+            return nil
         }
         
         let renderer = UIGraphicsImageRenderer(bounds: pathFrame)
@@ -100,17 +100,17 @@ class PencilStroke {
         return self.image
     }
     
-    func classify() -> PencilGestureClass? {
+    func classify() -> PencilGesture? {
+        guard self.gesture == nil else {
+            return self.gesture
+        }
+
         guard let image = self.renderImage() else {
             return nil
         }
         
-        guard self.gesture == nil else {
-            return self.gesture
-        }
-        
         let prediction = try! PencilStroke.model.prediction(image: image.pixelBuffer()!)
-        let gestureClass = PencilGestureClass(rawValue: prediction.classLabel)!
+        let gestureClass = PencilGesture(rawValue: prediction.classLabel)!
         
         let gestureProbability = prediction.classLabelProbs[gestureClass.rawValue]!
         guard gestureProbability >= PencilStroke.gestureClassProbabilityThreshold else {
@@ -122,7 +122,10 @@ class PencilStroke {
     }
 }
 
-class PencilInstantPanGestureRecognizer: InstantPanGestureRecognizer {
+class PencilGestureRecognizer: InstantPanGestureRecognizer {
+    
+    var stroke: PencilStroke?
+    var gesture: PencilGesture?
     
     override init(target: Any?, action: Selector?) {
         super.init(target: target, action: action)
@@ -131,11 +134,6 @@ class PencilInstantPanGestureRecognizer: InstantPanGestureRecognizer {
         self.maximumNumberOfTouches = 1
         self.allowedTouchTypes = [NSNumber(integerLiteral: UITouch.TouchType.pencil.rawValue)]
     }
-}
-
-class PencilGestureRecognizer: PencilInstantPanGestureRecognizer {
-    
-    var stroke: PencilStroke?
     
     func addLocationToStroke() {
         guard let stroke = self.stroke else {
@@ -147,7 +145,10 @@ class PencilGestureRecognizer: PencilInstantPanGestureRecognizer {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesBegan(touches, with: event)
-        self.stroke = PencilStroke()
+
+        self.stroke = PencilStroke(view: self.view!)
+        self.gesture = nil
+
         self.addLocationToStroke()
     }
     
@@ -159,6 +160,10 @@ class PencilGestureRecognizer: PencilInstantPanGestureRecognizer {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesEnded(touches, with: event)
         
-        // TODO:
+        guard let stroke = self.stroke else {
+            return
+        }
+
+        self.gesture = stroke.classify()
     }
 }

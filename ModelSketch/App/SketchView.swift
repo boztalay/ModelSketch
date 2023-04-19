@@ -187,8 +187,6 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     
     var drawingModeGestureRecognizer: InstantPanGestureRecognizer!
     var nodePanGestureRecognizer: UIPanGestureRecognizer!
-    var createNodeGestureRecognizer: PencilCircleGestureRecognizer!
-    var deleteGestureRecognizer: PencilDeleteGestureRecognizer!
     
     init() {
         self.model = Model()
@@ -203,8 +201,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.backgroundColor = .white
         
         self.addSubview(self.pencilStrokeView)
-        self.pencilStrokeView.panGestureRecognizer.delegate = self
-        self.addGestureRecognizer(self.pencilStrokeView.panGestureRecognizer)
+        self.pencilStrokeView.pencilGestureRecognizer.delegate = self
         
         self.addSubview(self.modelView)
         self.modelView.update()
@@ -224,14 +221,6 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.nodePanGestureRecognizer.minimumNumberOfTouches = 1
         self.nodePanGestureRecognizer.maximumNumberOfTouches = 1
         self.addGestureRecognizer(self.nodePanGestureRecognizer)
-        
-        self.createNodeGestureRecognizer = PencilCircleGestureRecognizer(target: self, action: #selector(self.createNodeGestureRecognizerUpdate))
-        self.createNodeGestureRecognizer.delegate = self
-        self.addGestureRecognizer(self.createNodeGestureRecognizer)
-        
-        self.deleteGestureRecognizer = PencilDeleteGestureRecognizer(target: self, action: #selector(self.deleteGestureRecognizerUpdate))
-        self.deleteGestureRecognizer.delegate = self
-        self.addGestureRecognizer(self.deleteGestureRecognizer)
     }
     
     func updateDrawingMode(_ drawingMode: DrawingMode) {
@@ -302,6 +291,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         }
     }
     
+    /*
     @objc func createNodeGestureRecognizerUpdate(_ gestureRecognizer : PencilCircleGestureRecognizer) {
         if gestureRecognizer.state == .ended {
             if let circleCenter = gestureRecognizer.circleCenter {
@@ -321,6 +311,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             }
         }
     }
+     */
     
     override func layoutSubviews() {
         self.pencilStrokeView.frame = self.bounds
