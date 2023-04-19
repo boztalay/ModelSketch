@@ -29,10 +29,12 @@ struct ContentView: View {
                 case .sketch:
                     RepresentedSketchView().ignoresSafeArea().navigationTitle("")
                 case .gestures:
-                    RepresentedGesturesView().navigationTitle("Gesture Trainer")
+                    GesturesView().navigationTitle("Gesture Trainer")
                 case .none:
                     Text("No Selection")
             }
+        }.onChange(of: selection) { _ in
+            columnVisibility = .detailOnly
         }
     }
 }

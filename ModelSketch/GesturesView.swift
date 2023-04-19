@@ -6,29 +6,45 @@
 //
 
 import SwiftUI
-import UIKit
 
-class GesturesView: UIView {
+struct GesturesView: View {
     
-    init() {
-        super.init(frame: .zero)
-        
-        self.backgroundColor = .red
+    enum TrainableGesture: String, CaseIterable, Identifiable {
+        case create = "Create 'O'"
+        case delete1 = "Delete 'X' 1"
+        case delete2 = "Delete 'X' 2"
+        var id: Self { self }
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    @State private var selectedGesture = TrainableGesture.create
+    
+    var body: some View {
+        HStack {
+            RepresentedPencilStrokeView()
+            Form {
+                Picker("Gesture to Train", selection: $selectedGesture) {
+                    ForEach(TrainableGesture.allCases) { gesture in
+                        Text(gesture.rawValue)
+                    }
+                }.pickerStyle(.menu)
+                HStack {
+                    Spacer()
+                    Button(action: saveImages) {
+                        Text("Save Images")
+                    }
+                    Spacer()
+                }
+            }.frame(width: 350.0)
+        }
+    }
+    
+    func saveImages() {
+        
     }
 }
 
-struct RepresentedGesturesView: UIViewRepresentable {
-    typealias UIViewType = GesturesView
-
-    func makeUIView(context: Context) -> GesturesView {
-        return GesturesView()
-    }
-    
-    func updateUIView(_ uiView: GesturesView, context: Context) {
-
+struct GesturesView_Previews: PreviewProvider {
+    static var previews: some View {
+        GesturesView()
     }
 }

@@ -5,6 +5,7 @@
 //  Created by Ben Oztalay on 4/13/23.
 //
 
+import SwiftUI
 import UIKit
 import Wave
 
@@ -108,5 +109,17 @@ class PencilStrokeView: UIView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+struct RepresentedPencilStrokeView: UIViewRepresentable {
+    typealias UIViewType = PencilStrokeView
+
+    func makeUIView(context: Context) -> PencilStrokeView {
+        return PencilStrokeView()
+    }
+    
+    func updateUIView(_ uiView: PencilStrokeView, context: Context) {
+
     }
 }
