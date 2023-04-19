@@ -167,6 +167,8 @@ class ModelView: UIView {
         for nodeView in self.nodeViews.values {
             nodeView.update(in: self)
         }
+        
+        self.setNeedsDisplay()
     }
     
     required init?(coder: NSCoder) {
