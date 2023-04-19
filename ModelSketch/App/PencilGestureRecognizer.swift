@@ -52,6 +52,17 @@ extension CGRect {
     }
 }
 
+extension UITouch {
+
+    var perpendicularForce: CGFloat {
+        if self.type == .pencil {
+            return self.force / sin(self.altitudeAngle)
+        } else {
+            return self.force
+        }
+    }
+}
+
 enum PencilGesture: String, CaseIterable, Identifiable {
     var id: Self { self }
     
