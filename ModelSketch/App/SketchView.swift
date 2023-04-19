@@ -63,7 +63,8 @@ class NodeView: UIView {
         
         self.superview!.setNeedsDisplay()
     }
-    
+
+    // TODO: Replace with a convenience function for SketchView to use
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         let extraSpace = NodeView.radius * (NodeView.touchTargetScale - 1.0)
         return bounds.insetBy(dx: -extraSpace, dy: -extraSpace).contains(point)
@@ -206,16 +207,19 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.modelView.isUserInteractionEnabled = false
         self.modelView.update()
 
+        // TODO: Ditch this
         self.addSubview(self.drawingModeLabel)
         self.drawingModeLabel.text = self.drawingMode.rawValue
         self.drawingModeLabel.textAlignment = .center
 
+        // TODO: Ditch this, use force or long press in the node pan gesture recognizer
         self.drawingModeGestureRecognizer = InstantPanGestureRecognizer(target: self, action: #selector(self.drawingModeGestureRecognizerUpdate))
         self.drawingModeGestureRecognizer.delegate = self
         self.drawingModeGestureRecognizer.minimumNumberOfTouches = DrawingMode.minTouchCount
         self.drawingModeGestureRecognizer.maximumNumberOfTouches = DrawingMode.maxTouchCount
         self.addGestureRecognizer(self.drawingModeGestureRecognizer)
 
+        // TODO: Fail the pencil stroke gesture recognizer if this hits a node, fail this if it doesn't hit a node
         self.nodePanGestureRecognizer = InstantPanGestureRecognizer(target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
         self.nodePanGestureRecognizer.delegate = self
         self.nodePanGestureRecognizer.minimumNumberOfTouches = 1
@@ -303,6 +307,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             case .create:
                 self.model.createNode(at: location)
             case .scratch:
+                // TODO: Walk the stroke path and remove all nodes around the path
                 for node in self.model.nodes {
                     if node.cgPoint.distance(to: location) < NodeView.radius * NodeView.touchTargetScale {
                         self.model.deleteNode(node)
@@ -314,7 +319,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         
         self.modelView.update()
     }
-    
+
     override func layoutSubviews() {
         self.pencilStrokeView.frame = self.bounds
         self.modelView.frame = self.bounds

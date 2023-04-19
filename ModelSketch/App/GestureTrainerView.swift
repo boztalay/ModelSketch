@@ -50,7 +50,7 @@ struct GestureTrainerView: View {
                         Spacer()
                         Button(action: saveImages) {
                             if self.labeledStrokes.count == 0 {
-                                Text("Make a Gesture!")
+                                Text("Draw a Gesture!")
                             } else if self.labeledStrokes.count == 1 {
                                 Text("Save Image")
                             } else {
@@ -66,6 +66,10 @@ struct GestureTrainerView: View {
     }
     
     func strokeCompletion(_ stroke: PencilStroke) {
+        guard stroke.image != nil else {
+            return
+        }
+        
         self.labeledStrokes.append(LabeledStroke(stroke: stroke, label: self.selectedGesture))
     }
     

@@ -21,6 +21,8 @@ enum PencilGesture: String, CaseIterable, Identifiable {
     case create
     case scratch
     
+    // TODO: Negative examples (line, half moon)
+    
     var friendlyName: String {
         switch self {
             case .create:
@@ -32,8 +34,11 @@ enum PencilGesture: String, CaseIterable, Identifiable {
 }
 
 class PencilStroke {
-    
+
+    static let minSize = 10.0
+    static let maxSize = 200.0
     static let lineWidth = 2.0
+    
     static let model = try! ModelSketchGestureClassifier(configuration: MLModelConfiguration())
     static let gestureClassProbabilityThreshold = 0.95
 
@@ -96,6 +101,14 @@ class PencilStroke {
         }
 
         guard let pathFrame = self.pathFrame else {
+            return nil
+        }
+        
+        guard pathFrame.width >= PencilStroke.minSize || pathFrame.height >= PencilStroke.minSize else {
+            return nil
+        }
+        
+        guard pathFrame.width <= PencilStroke.maxSize && pathFrame.height <= PencilStroke.maxSize else {
             return nil
         }
         
