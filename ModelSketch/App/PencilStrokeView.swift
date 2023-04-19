@@ -48,15 +48,6 @@ class AnimatedPencilStroke {
         self.color.set()
         strokePath.lineWidth = PencilStroke.lineWidth
         strokePath.stroke()
-        
-        guard let walkPoints = self.stroke.walkPath(stride: 10.0) else {
-            return
-        }
-        
-        UIColor.systemRed.set()
-        for point in walkPoints {
-            UIBezierPath(ovalIn: CGRect(x: point.x - 1.0, y: point.y - 1.0, width: 2.0, height: 2.0)).fill()
-        }
     }
 }
 

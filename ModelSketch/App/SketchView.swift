@@ -63,11 +63,9 @@ class NodeView: UIView {
         
         self.superview!.setNeedsDisplay()
     }
-
-    // TODO: Replace with a convenience function for SketchView to use
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        let extraSpace = NodeView.radius * (NodeView.touchTargetScale - 1.0)
-        return bounds.insetBy(dx: -extraSpace, dy: -extraSpace).contains(point)
+    
+    func containsPoint(_ point: CGPoint) -> Bool {
+        return (point.distance(to: self.node.cgPoint) < (NodeView.radius * NodeView.touchTargetScale))
     }
     
     required init?(coder: NSCoder) {
@@ -307,19 +305,31 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             case .create:
                 self.model.createNode(at: location)
             case .scratch:
-                // TODO: Walk the stroke path and remove all nodes around the path
-                for node in self.model.nodes {
-                    if node.cgPoint.distance(to: location) < NodeView.radius * NodeView.touchTargetScale {
-                        self.model.deleteNode(node)
-                        self.modelView.update()
-                        break
-                    }
-                }
+                self.handleScratchGesture(stroke)
             default:
                 return
         }
         
         self.modelView.update()
+    }
+    
+    func handleScratchGesture(_ stroke: PencilStroke) {
+        guard let points = stroke.walkPath(stride: NodeView.radius) else {
+            return
+        }
+        
+        for point in points {
+            var nodesToDelete = [Node]()
+            for nodeView in self.modelView.nodeViews.values {
+                if nodeView.containsPoint(point) {
+                    nodesToDelete.append(nodeView.node)
+                }
+            }
+            
+            for node in nodesToDelete {
+                self.model.deleteNode(node)
+            }
+        }
     }
 
     override func layoutSubviews() {
