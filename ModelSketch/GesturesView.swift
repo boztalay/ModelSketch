@@ -11,17 +11,14 @@ enum TrainableGesture: String, CaseIterable, Identifiable {
     var id: Self { self }
     
     case create
-    case delete1
-    case delete2
+    case scratch
     
     var friendlyName: String {
         switch self {
             case .create:
                 return "Create 'O'"
-            case .delete1:
-                return "Delete 'X' 1"
-            case .delete2:
-                return "Delete 'X' 2"
+            case .scratch:
+                return "Scratch"
         }
     }
 }
