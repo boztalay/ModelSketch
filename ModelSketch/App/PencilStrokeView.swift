@@ -55,6 +55,7 @@ class PencilStrokeView: UIView {
     
     var strokes: [AnimatedPencilStroke]
     var pencilGestureRecognizer: PencilGestureRecognizer!
+    var animates = true
     
     var strokeCompletion: ((PencilStroke) -> ())?
     
@@ -77,7 +78,14 @@ class PencilStrokeView: UIView {
     
     @objc func pencilGestureRecognizerUpdate(_ gestureRecognizer : PencilGestureRecognizer) {
         if gestureRecognizer.state == .began {
-            self.strokes.append(AnimatedPencilStroke(stroke: gestureRecognizer.stroke!))
+            let newStroke = AnimatedPencilStroke(stroke: gestureRecognizer.stroke!)
+            newStroke.owningView = self
+            
+            if !self.animates && self.strokes.count > 0 {
+                self.strokes.remove(at: 0)
+            }
+            
+            self.strokes.append(newStroke)
         }
         
         if gestureRecognizer.state == .ended {
@@ -86,9 +94,11 @@ class PencilStrokeView: UIView {
                     strokeCompletion(currentStroke.stroke)
                 }
                 
-                currentStroke.startAnimating()
-                currentStroke.animator.completion = { _ in
-                    self.strokes.remove(at: 0)
+                if self.animates {
+                    currentStroke.startAnimating()
+                    currentStroke.animator.completion = { _ in
+                        self.strokes.remove(at: 0)
+                    }
                 }
             }
         }

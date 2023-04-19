@@ -11,16 +11,25 @@ import UIKit
 class GestureTrainerView: UIView {
     
     var pencilStrokeView: PencilStrokeView!
+    var nodeView: NodeView!
     
     init() {
         super.init(frame: .zero)
         
         self.pencilStrokeView = PencilStrokeView()
+        self.pencilStrokeView.animates = false
         self.addSubview(self.pencilStrokeView)
+        
+        self.nodeView = NodeView(node: Node(x: 0.0, y: 0.0))
+        self.nodeView.isUserInteractionEnabled = false
+        self.addSubview(self.nodeView)
     }
     
     override func layoutSubviews() {
         self.pencilStrokeView.frame = self.bounds
+        self.nodeView.node.x = self.center.x
+        self.nodeView.node.y = self.center.y
+        self.nodeView.update(in: self)
     }
     
     required init?(coder: NSCoder) {

@@ -29,12 +29,10 @@ class NodeView: UIView {
     
     static let radius = 7.0
     static let touchTargetScale = 1.5
-    
-    let modelView: ModelView
+
     let node: Node
     
-    init(modelView: ModelView, node: Node) {
-        self.modelView = modelView
+    init(node: Node) {
         self.node = node
         
         super.init(frame: CGRect.zero)
@@ -151,7 +149,7 @@ class ModelView: UIView {
     func update() {
         for node in self.model.nodes {
             if self.nodeViews[node] == nil {
-                let nodeView = NodeView(modelView: self, node: node)
+                let nodeView = NodeView(node: node)
                 self.nodeViews[node] = nodeView
             }
         }
