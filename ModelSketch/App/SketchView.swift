@@ -8,19 +8,41 @@
 import SwiftUI
 import UIKit
 
+enum NodeViewHighlightState {
+    case normal
+    case startOfConnection
+    
+    var color: UIColor {
+        switch self {
+            case .normal:
+                return UIColor.darkGray
+            case .startOfConnection:
+                return UIColor.systemBlue
+        }
+    }
+}
+
 class NodeView: UIView {
     
     static let radius = 7.0
     static let touchTargetScale = 1.5
 
     let node: Node
+    var highlightState: NodeViewHighlightState
     
     init(node: Node) {
         self.node = node
+        self.highlightState = .normal
         
         super.init(frame: CGRect.zero)
         
         self.backgroundColor = .white
+        self.setHighlightState(self.highlightState)
+    }
+    
+    func setHighlightState(_ highlightState: NodeViewHighlightState) {
+        self.highlightState = highlightState
+        self.layer.borderColor = self.highlightState.color.cgColor
     }
     
     func update(in superview: UIView) {
@@ -36,7 +58,7 @@ class NodeView: UIView {
         )
         
         self.layer.cornerRadius = NodeView.radius
-        self.layer.borderColor = UIColor.darkGray.cgColor
+        self.layer.borderColor = self.highlightState.color.cgColor
         self.layer.borderWidth = 3.0
         
         if self.superview != superview {
@@ -93,7 +115,7 @@ class ModelView: UIView {
     }
     
     func completeConnection(from nodeView: NodeView, at location: CGPoint) {
-        if let endNodeView = self.hitTest(location, with: nil) as? NodeView {
+        if let endNodeView = self.getNodeView(at: location) {
             self.model.connect(between: nodeView.node, endNodeView.node)
         }
         
@@ -158,8 +180,6 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
 
     var pencilStrokeView: PencilStrokeView
     var modelView: ModelView
-
-    var nodeViewBeingPanned: NodeView?
     var nodePanGestureRecognizer: UIPanGestureRecognizer!
     
     init() {
@@ -180,42 +200,49 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.modelView.isUserInteractionEnabled = false
         self.modelView.update()
 
-        // TODO: Fail the pencil stroke gesture recognizer if this hits a node, fail this if it doesn't hit a node
-        self.nodePanGestureRecognizer = InstantPanGestureRecognizer(target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
+        self.nodePanGestureRecognizer = NodePanGestureRecognizer(modelView: self.modelView, target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
         self.nodePanGestureRecognizer.delegate = self
-        self.nodePanGestureRecognizer.minimumNumberOfTouches = 1
-        self.nodePanGestureRecognizer.maximumNumberOfTouches = 1
         self.addGestureRecognizer(self.nodePanGestureRecognizer)
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer == self.pencilStrokeView.pencilGestureRecognizer && otherGestureRecognizer == self.nodePanGestureRecognizer {
+            return true
+        }
+        
+        return false
+    }
 
-    @objc func nodePanGestureRecognizerUpdate(_ gestureRecognizer : UIPanGestureRecognizer) {
+    @objc func nodePanGestureRecognizerUpdate(_ gestureRecognizer : NodePanGestureRecognizer) {
+        guard let nodeView = gestureRecognizer.nodeView else {
+            return
+        }
+
         let location = gestureRecognizer.location(in: self.modelView)
 
         if gestureRecognizer.state == .began {
-            guard let nodeView = self.modelView.getNodeView(at: location) else {
-                gestureRecognizer.cancel()
-                return
+            if gestureRecognizer.isHardPress {
+                self.modelView.startConnection(from: nodeView, at: location)
             }
-
-            self.nodeViewBeingPanned = nodeView
-            self.pencilStrokeView.pencilGestureRecognizer.cancel()
         }
         
         if gestureRecognizer.state == .changed {
-            guard let nodeViewBeingPanned = self.nodeViewBeingPanned else {
-                return
+            if gestureRecognizer.isHardPress {
+                self.modelView.updateConnection(from: nodeView, at: location)
+            } else {
+                nodeView.node.cgPoint = location
+                self.modelView.update()
             }
-            
-            nodeViewBeingPanned.node.cgPoint = location
-            self.modelView.update()
         }
         
         if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
-            self.nodeViewBeingPanned = nil
+            if gestureRecognizer.isHardPress {
+                self.modelView.completeConnection(from: nodeView, at: location)
+            }
         }
     }
     
@@ -265,14 +292,6 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-}
-
-extension UIGestureRecognizer {
-    
-    func cancel() {
-        self.isEnabled = false
-        self.isEnabled = true
     }
 }
 

@@ -37,6 +37,7 @@
 		FB077B7A29F0596C004F0857 /* CVPixelBuffer+Rotate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6B29F0596C004F0857 /* CVPixelBuffer+Rotate.swift */; };
 		FB077B7B29F0596C004F0857 /* Array+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6C29F0596C004F0857 /* Array+Extensions.swift */; };
 		FB077B7C29F0596C004F0857 /* Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6D29F0596C004F0857 /* Math.swift */; };
+		FB077B7E29F0A05F004F0857 /* NodePanGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B7D29F0A05F004F0857 /* NodePanGestureRecognizer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,6 +72,7 @@
 		FB077B6B29F0596C004F0857 /* CVPixelBuffer+Rotate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CVPixelBuffer+Rotate.swift"; sourceTree = "<group>"; };
 		FB077B6C29F0596C004F0857 /* Array+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Array+Extensions.swift"; sourceTree = "<group>"; };
 		FB077B6D29F0596C004F0857 /* Math.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Math.swift; sourceTree = "<group>"; };
+		FB077B7D29F0A05F004F0857 /* NodePanGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodePanGestureRecognizer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -164,6 +166,7 @@
 				FB077B4229E472CA004F0857 /* SketchView.swift */,
 				FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */,
 				FB077B4829E722ED004F0857 /* PencilGestureRecognizer.swift */,
+				FB077B7D29F0A05F004F0857 /* NodePanGestureRecognizer.swift */,
 				FB077B4429E654DE004F0857 /* InstantPanGestureRecognizer.swift */,
 				FB077B5629F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel */,
 			);
@@ -247,6 +250,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FB077B6F29F0596C004F0857 /* MLMultiArray+Helpers.swift in Sources */,
+				FB077B7E29F0A05F004F0857 /* NodePanGestureRecognizer.swift in Sources */,
 				FB077B7229F0596C004F0857 /* CVPixelBuffer+Create.swift in Sources */,
 				FB077B7629F0596C004F0857 /* CVPixelBuffer+Resize.swift in Sources */,
 				FB077B4B29E8BECD004F0857 /* PencilStrokeView.swift in Sources */,
