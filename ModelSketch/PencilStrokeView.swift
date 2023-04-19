@@ -5,6 +5,7 @@
 //  Created by Ben Oztalay on 4/13/23.
 //
 
+import CoreML
 import SwiftUI
 import UIKit
 import Wave
@@ -43,6 +44,7 @@ class PencilStrokeView: UIView {
     
     var strokes: [AnimatedPencilStroke]
     var panGestureRecognizer: PencilInstantPanGestureRecognizer!
+    let model: ModelSketchGestureClassifier
     
     var strokeCompletion: ((UIImage) -> ())?
     
@@ -52,6 +54,7 @@ class PencilStrokeView: UIView {
     
     init() {
         self.strokes = []
+        self.model = try! ModelSketchGestureClassifier(configuration: MLModelConfiguration())
         
         super.init(frame: .zero)
         
@@ -119,6 +122,10 @@ class PencilStrokeView: UIView {
         let image = renderer.image { rendererContext in
             self.layer.render(in: rendererContext.cgContext)
         }
+
+        let label = try! self.model.prediction(image: image.pixelBuffer()!)
+        print(label.classLabel)
+        print(label.classLabelProbs)
 
         strokeCompletion(image)
     }

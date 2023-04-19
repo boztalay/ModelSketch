@@ -83,6 +83,8 @@ struct GesturesView: View {
             let fileUrl = directoryUrl.appending(path: UUID().uuidString).appendingPathExtension("png")
             try! data.write(to: fileUrl)
         }
+        
+        self.images = []
     }
 }
 
