@@ -37,7 +37,7 @@
 		FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilStrokeView.swift; sourceTree = "<group>"; };
 		FB077B5129EF638F004F0857 /* GesturesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GesturesView.swift; sourceTree = "<group>"; };
 		FB077B5329EF7349004F0857 /* GestureTrainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureTrainerView.swift; sourceTree = "<group>"; };
-		FB077B5529EF9897004F0857 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		FB077B5529EF9897004F0857 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FB077B5629F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = ModelSketchGestureClassifier.mlmodel; sourceTree = "<group>"; };
 		FB077B5829F051CF004F0857 /* UIImage+CVPixelBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+CVPixelBuffer.swift"; sourceTree = "<group>"; };
 		FB077B5A29F05229004F0857 /* CGImage+CVPixelBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGImage+CVPixelBuffer.swift"; sourceTree = "<group>"; };
@@ -74,21 +74,12 @@
 		FB077B2F29E4720F004F0857 /* ModelSketch */ = {
 			isa = PBXGroup;
 			children = (
-				FB077B5529EF9897004F0857 /* Info.plist */,
-				FB077B3029E4720F004F0857 /* ModelSketchApp.swift */,
-				FB077B3229E4720F004F0857 /* ContentView.swift */,
-				FB077B5129EF638F004F0857 /* GesturesView.swift */,
-				FB077B5329EF7349004F0857 /* GestureTrainerView.swift */,
-				FB077B4229E472CA004F0857 /* SketchView.swift */,
-				FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */,
-				FB077B4829E722ED004F0857 /* PencilDeleteGestureRecognizer.swift */,
-				FB077B4429E654DE004F0857 /* InstantPanGestureRecognizer.swift */,
-				FB077B4629E65531004F0857 /* Model.swift */,
-				FB077B5829F051CF004F0857 /* UIImage+CVPixelBuffer.swift */,
-				FB077B5A29F05229004F0857 /* CGImage+CVPixelBuffer.swift */,
-				FB077B5629F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel */,
-				FB077B3429E4720F004F0857 /* Assets.xcassets */,
+				FB077B5E29F0577F004F0857 /* App */,
+				FB077B5D29F05777004F0857 /* Model */,
+				FB077B5C29F05741004F0857 /* CoreMLHelpers */,
 				FB077B3629E4720F004F0857 /* Preview Content */,
+				FB077B5529EF9897004F0857 /* Info.plist */,
+				FB077B3429E4720F004F0857 /* Assets.xcassets */,
 			);
 			path = ModelSketch;
 			sourceTree = "<group>";
@@ -99,6 +90,39 @@
 				FB077B3729E4720F004F0857 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		FB077B5C29F05741004F0857 /* CoreMLHelpers */ = {
+			isa = PBXGroup;
+			children = (
+				FB077B5829F051CF004F0857 /* UIImage+CVPixelBuffer.swift */,
+				FB077B5A29F05229004F0857 /* CGImage+CVPixelBuffer.swift */,
+			);
+			path = CoreMLHelpers;
+			sourceTree = "<group>";
+		};
+		FB077B5D29F05777004F0857 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				FB077B4629E65531004F0857 /* Model.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		FB077B5E29F0577F004F0857 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				FB077B3029E4720F004F0857 /* ModelSketchApp.swift */,
+				FB077B3229E4720F004F0857 /* ContentView.swift */,
+				FB077B5129EF638F004F0857 /* GesturesView.swift */,
+				FB077B5329EF7349004F0857 /* GestureTrainerView.swift */,
+				FB077B4229E472CA004F0857 /* SketchView.swift */,
+				FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */,
+				FB077B4829E722ED004F0857 /* PencilDeleteGestureRecognizer.swift */,
+				FB077B4429E654DE004F0857 /* InstantPanGestureRecognizer.swift */,
+				FB077B5629F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel */,
+			);
+			path = App;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
