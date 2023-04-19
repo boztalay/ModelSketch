@@ -6,49 +6,80 @@
 //
 
 import SwiftUI
-import UIKit
 
-class GestureTrainerView: UIView {
+struct LabeledStroke {
+    let stroke: PencilStroke
+    let label: PencilGesture
+}
+
+struct GestureTrainerView: View {
     
-    var pencilStrokeView: PencilStrokeView!
-    var nodeView: NodeView!
+    @State private var selectedGesture = PencilGesture.create
+    @State private var strokeImage = UIImage(systemName: "pencil.line")!
+    @State private var labeledStrokes = [LabeledStroke]()
     
-    init() {
-        super.init(frame: .zero)
-        
-        self.pencilStrokeView = PencilStrokeView()
-        self.pencilStrokeView.animates = false
-        self.addSubview(self.pencilStrokeView)
-        
-        self.nodeView = NodeView(node: Node(x: 0.0, y: 0.0))
-        self.nodeView.isUserInteractionEnabled = false
-        self.addSubview(self.nodeView)
+    var body: some View {
+        GeometryReader { metrics in
+            HStack {
+                RepresentedGestureView(strokeCompletion: strokeCompletion)
+                Form {
+                    HStack{
+                        Spacer()
+                        Image(uiImage: strokeImage).frame(width: 100.0, height: 100.0).aspectRatio(contentMode: .fit)
+                        Spacer()
+                    }
+                    Picker("Gesture to Train", selection: $selectedGesture) {
+                        ForEach(PencilGesture.allCases) { gesture in
+                            Text(gesture.friendlyName)
+                        }
+                    }.pickerStyle(.menu)
+                    HStack {
+                        Spacer()
+                        Button(action: saveImages) {
+                            if self.labeledStrokes.count == 0 {
+                                Text("Make a Gesture!")
+                            } else if self.labeledStrokes.count == 1 {
+                                Text("Save Image")
+                            } else {
+                                Text("Save \(self.labeledStrokes.count) Images")
+                            }
+                        }.disabled(self.labeledStrokes.count == 0)
+                        Spacer()
+                    }
+                }.frame(width: metrics.size.width * 0.30)
+            }
+        }
     }
     
-    override func layoutSubviews() {
-        self.pencilStrokeView.frame = self.bounds
-        self.nodeView.node.x = self.center.x
-        self.nodeView.node.y = self.center.y
-        self.nodeView.update(in: self)
+    func strokeCompletion(_ stroke: PencilStroke) {
+        guard let image = stroke.renderImage() else {
+            return
+        }
+
+        self.strokeImage = image
+        self.labeledStrokes.append(LabeledStroke(stroke: stroke, label: self.selectedGesture))
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    func saveImages() {
+        for labeledStroke in self.labeledStrokes {
+            guard let image = labeledStroke.stroke.renderImage() else {
+                continue
+            }
+            
+            let data = image.pngData()!
+            let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let directoryUrl = documentsUrl.appending(component: "labeled_gestures").appending(component: labeledStroke.label.rawValue)
+            try! FileManager.default.createDirectory(at: directoryUrl, withIntermediateDirectories: true)
+            let fileUrl = directoryUrl.appending(path: UUID().uuidString).appendingPathExtension("png")
+            try! data.write(to: fileUrl)
+        }
+        
+        self.labeledStrokes = []
     }
 }
 
-struct RepresentedGestureTrainerView: UIViewRepresentable {
-    typealias UIViewType = GestureTrainerView
-    
-    @State var strokeCompletion: (PencilStroke) -> ()
-
-    func makeUIView(context: Context) -> GestureTrainerView {
-        let view = GestureTrainerView()
-        view.pencilStrokeView.strokeCompletion = self.strokeCompletion
-        return view
-    }
-    
-    func updateUIView(_ uiView: GestureTrainerView, context: Context) {
-
+struct GesturesView_Previews: PreviewProvider {
+    static var previews: some View {
+        GestureTrainerView()
     }
 }

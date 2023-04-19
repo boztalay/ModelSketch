@@ -17,8 +17,8 @@
 		FB077B4929E722ED004F0857 /* PencilGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B4829E722ED004F0857 /* PencilGestureRecognizer.swift */; };
 		FB077B4B29E8BECD004F0857 /* PencilStrokeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */; };
 		FB077B4E29E8C317004F0857 /* Wave in Frameworks */ = {isa = PBXBuildFile; productRef = FB077B4D29E8C317004F0857 /* Wave */; };
-		FB077B5229EF638F004F0857 /* GesturesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5129EF638F004F0857 /* GesturesView.swift */; };
-		FB077B5429EF7349004F0857 /* GestureTrainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5329EF7349004F0857 /* GestureTrainerView.swift */; };
+		FB077B5229EF638F004F0857 /* GestureTrainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5129EF638F004F0857 /* GestureTrainerView.swift */; };
+		FB077B5429EF7349004F0857 /* GestureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5329EF7349004F0857 /* GestureView.swift */; };
 		FB077B5729F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5629F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel */; };
 		FB077B5929F051CF004F0857 /* UIImage+CVPixelBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5829F051CF004F0857 /* UIImage+CVPixelBuffer.swift */; };
 		FB077B5B29F05229004F0857 /* CGImage+CVPixelBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5A29F05229004F0857 /* CGImage+CVPixelBuffer.swift */; };
@@ -50,8 +50,8 @@
 		FB077B4629E65531004F0857 /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		FB077B4829E722ED004F0857 /* PencilGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilGestureRecognizer.swift; sourceTree = "<group>"; };
 		FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilStrokeView.swift; sourceTree = "<group>"; };
-		FB077B5129EF638F004F0857 /* GesturesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GesturesView.swift; sourceTree = "<group>"; };
-		FB077B5329EF7349004F0857 /* GestureTrainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureTrainerView.swift; sourceTree = "<group>"; };
+		FB077B5129EF638F004F0857 /* GestureTrainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureTrainerView.swift; sourceTree = "<group>"; };
+		FB077B5329EF7349004F0857 /* GestureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureView.swift; sourceTree = "<group>"; };
 		FB077B5529EF9897004F0857 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FB077B5629F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = ModelSketchGestureClassifier.mlmodel; sourceTree = "<group>"; };
 		FB077B5829F051CF004F0857 /* UIImage+CVPixelBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+CVPixelBuffer.swift"; sourceTree = "<group>"; };
@@ -159,8 +159,8 @@
 			children = (
 				FB077B3029E4720F004F0857 /* ModelSketchApp.swift */,
 				FB077B3229E4720F004F0857 /* ContentView.swift */,
-				FB077B5129EF638F004F0857 /* GesturesView.swift */,
-				FB077B5329EF7349004F0857 /* GestureTrainerView.swift */,
+				FB077B5129EF638F004F0857 /* GestureTrainerView.swift */,
+				FB077B5329EF7349004F0857 /* GestureView.swift */,
 				FB077B4229E472CA004F0857 /* SketchView.swift */,
 				FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */,
 				FB077B4829E722ED004F0857 /* PencilGestureRecognizer.swift */,
@@ -258,7 +258,7 @@
 				FB077B7B29F0596C004F0857 /* Array+Extensions.swift in Sources */,
 				FB077B5B29F05229004F0857 /* CGImage+CVPixelBuffer.swift in Sources */,
 				FB077B7C29F0596C004F0857 /* Math.swift in Sources */,
-				FB077B5229EF638F004F0857 /* GesturesView.swift in Sources */,
+				FB077B5229EF638F004F0857 /* GestureTrainerView.swift in Sources */,
 				FB077B5929F051CF004F0857 /* UIImage+CVPixelBuffer.swift in Sources */,
 				FB077B4929E722ED004F0857 /* PencilGestureRecognizer.swift in Sources */,
 				FB077B7A29F0596C004F0857 /* CVPixelBuffer+Rotate.swift in Sources */,
@@ -270,7 +270,7 @@
 				FB077B7429F0596C004F0857 /* MLModel+Images.swift in Sources */,
 				FB077B4329E472CA004F0857 /* SketchView.swift in Sources */,
 				FB077B7029F0596C004F0857 /* UIImage+Extensions.swift in Sources */,
-				FB077B5429EF7349004F0857 /* GestureTrainerView.swift in Sources */,
+				FB077B5429EF7349004F0857 /* GestureView.swift in Sources */,
 				FB077B7529F0596C004F0857 /* NonMaxSuppression.swift in Sources */,
 				FB077B3129E4720F004F0857 /* ModelSketchApp.swift in Sources */,
 			);

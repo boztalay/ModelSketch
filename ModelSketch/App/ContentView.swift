@@ -29,7 +29,7 @@ struct ContentView: View {
                 case .sketch:
                     RepresentedSketchView().ignoresSafeArea().navigationTitle("")
                 case .gestures:
-                    GesturesView().navigationTitle("Gesture Trainer")
+                    GestureTrainerView().navigationTitle("Gesture Trainer")
                 case .none:
                     Text("No Selection")
             }
