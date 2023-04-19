@@ -34,6 +34,7 @@
 		FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilStrokeView.swift; sourceTree = "<group>"; };
 		FB077B5129EF638F004F0857 /* GesturesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GesturesView.swift; sourceTree = "<group>"; };
 		FB077B5329EF7349004F0857 /* GestureTrainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureTrainerView.swift; sourceTree = "<group>"; };
+		FB077B5529EF9897004F0857 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +68,7 @@
 		FB077B2F29E4720F004F0857 /* ModelSketch */ = {
 			isa = PBXGroup;
 			children = (
+				FB077B5529EF9897004F0857 /* Info.plist */,
 				FB077B3029E4720F004F0857 /* ModelSketchApp.swift */,
 				FB077B3229E4720F004F0857 /* ContentView.swift */,
 				FB077B5129EF638F004F0857 /* GesturesView.swift */,
@@ -306,6 +308,8 @@
 				DEVELOPMENT_TEAM = FMKG4J2L9M;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ModelSketch/Info.plist;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -338,6 +342,8 @@
 				DEVELOPMENT_TEAM = FMKG4J2L9M;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ModelSketch/Info.plist;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
