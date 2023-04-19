@@ -181,8 +181,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     var pencilStrokeView: PencilStrokeView
     var modelView: ModelView
     var drawingModeLabel: UILabel
+
     var drawingMode: DrawingMode
-    
     var nodeViewBeingPanned: NodeView?
     
     var drawingModeGestureRecognizer: InstantPanGestureRecognizer!
@@ -197,7 +197,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.drawingMode = .constructNodes
         self.modelView = ModelView(model: self.model, drawingMode: self.drawingMode)
 
-        super.init(frame: CGRect.zero)
+        super.init(frame: .zero)
 
         self.isMultipleTouchEnabled = true
         self.backgroundColor = .white

@@ -17,6 +17,7 @@
 		FB077B4929E722ED004F0857 /* PencilDeleteGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B4829E722ED004F0857 /* PencilDeleteGestureRecognizer.swift */; };
 		FB077B4B29E8BECD004F0857 /* PencilStrokeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */; };
 		FB077B4E29E8C317004F0857 /* Wave in Frameworks */ = {isa = PBXBuildFile; productRef = FB077B4D29E8C317004F0857 /* Wave */; };
+		FB077B5229EF638F004F0857 /* GesturesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5129EF638F004F0857 /* GesturesView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		FB077B4629E65531004F0857 /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		FB077B4829E722ED004F0857 /* PencilDeleteGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilDeleteGestureRecognizer.swift; sourceTree = "<group>"; };
 		FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilStrokeView.swift; sourceTree = "<group>"; };
+		FB077B5129EF638F004F0857 /* GesturesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GesturesView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 			children = (
 				FB077B3029E4720F004F0857 /* ModelSketchApp.swift */,
 				FB077B3229E4720F004F0857 /* ContentView.swift */,
+				FB077B5129EF638F004F0857 /* GesturesView.swift */,
 				FB077B4229E472CA004F0857 /* SketchView.swift */,
 				FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */,
 				FB077B4829E722ED004F0857 /* PencilDeleteGestureRecognizer.swift */,
@@ -162,6 +165,7 @@
 			files = (
 				FB077B4B29E8BECD004F0857 /* PencilStrokeView.swift in Sources */,
 				FB077B4729E65531004F0857 /* Model.swift in Sources */,
+				FB077B5229EF638F004F0857 /* GesturesView.swift in Sources */,
 				FB077B4929E722ED004F0857 /* PencilDeleteGestureRecognizer.swift in Sources */,
 				FB077B3329E4720F004F0857 /* ContentView.swift in Sources */,
 				FB077B4529E654DE004F0857 /* InstantPanGestureRecognizer.swift in Sources */,

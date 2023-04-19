@@ -360,6 +360,9 @@ class PencilCircleGestureRecognizer: PencilInstantPanGestureRecognizer {
             return
         }
         
+        let touch = touches.first!
+        print("\(touch.force)")
+        
         let location = self.location(in: self.view)
         stroke.add(point: location)
     }
