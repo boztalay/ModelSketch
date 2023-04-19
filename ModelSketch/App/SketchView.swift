@@ -315,6 +315,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
                         break
                     }
                 }
+            default:
+                return
         }
         
         self.modelView.update()

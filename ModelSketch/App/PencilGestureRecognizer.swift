@@ -20,8 +20,8 @@ enum PencilGesture: String, CaseIterable, Identifiable {
     
     case create
     case scratch
-    
-    // TODO: Negative examples (line, half moon)
+    case line
+    case curve
     
     var friendlyName: String {
         switch self {
@@ -29,6 +29,10 @@ enum PencilGesture: String, CaseIterable, Identifiable {
                 return "Create 'O'"
             case .scratch:
                 return "Scratch"
+            case .line:
+                return "Line"
+            case .curve:
+                return "Curve"
         }
     }
 }
@@ -40,7 +44,7 @@ class PencilStroke {
     static let lineWidth = 2.0
     
     static let model = try! ModelSketchGestureClassifier(configuration: MLModelConfiguration())
-    static let gestureClassProbabilityThreshold = 0.95
+    static let gestureClassProbabilityThreshold = 0.85
 
     let view: UIView
     private(set) var points: [CGPoint]
