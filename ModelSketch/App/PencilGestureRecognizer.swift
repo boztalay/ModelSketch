@@ -8,6 +8,29 @@
 import CoreML
 import UIKit
 
+extension CGPoint {
+    
+    func intermediatePoints(to other: CGPoint, stride: CGFloat) -> [CGPoint] {
+        var points = [CGPoint]()
+        points.append(self)
+
+        let angle = atan2(other.y - self.y, other.x - self.x)
+        let rise = stride * sin(angle)
+        let run = stride * cos(angle)
+        
+        while true {
+            let startPoint = points.last!
+            guard startPoint.distance(to: other) > stride else {
+                break
+            }
+            
+            points.append(CGPoint(x: startPoint.x + run, y: startPoint.y + rise))
+        }
+        
+        return points
+    }
+}
+
 extension CGRect {
     
     var center: CGPoint {
@@ -143,6 +166,21 @@ class PencilStroke {
         
         self.gesture = gestureClass
         return self.gesture
+    }
+    
+    func walkPath(stride: CGFloat) -> [CGPoint]? {
+        guard self.points.count > 1 else {
+            return nil
+        }
+        
+        var pointsAlongPath = [CGPoint]()
+        
+        for (i, point) in self.points.dropLast().enumerated() {
+            let nextPoint = self.points[i + 1]
+            pointsAlongPath.append(contentsOf: point.intermediatePoints(to: nextPoint, stride: stride))
+        }
+        
+        return pointsAlongPath
     }
 }
 
