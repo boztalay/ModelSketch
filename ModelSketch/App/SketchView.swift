@@ -199,21 +199,23 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.backgroundColor = .white
         
         self.addSubview(self.pencilStrokeView)
+        self.pencilStrokeView.strokeCompletion = self.strokeCompletion
         self.pencilStrokeView.pencilGestureRecognizer.delegate = self
         
         self.addSubview(self.modelView)
+        self.modelView.isUserInteractionEnabled = false
         self.modelView.update()
-        
+
         self.addSubview(self.drawingModeLabel)
         self.drawingModeLabel.text = self.drawingMode.rawValue
         self.drawingModeLabel.textAlignment = .center
-        
+
         self.drawingModeGestureRecognizer = InstantPanGestureRecognizer(target: self, action: #selector(self.drawingModeGestureRecognizerUpdate))
         self.drawingModeGestureRecognizer.delegate = self
         self.drawingModeGestureRecognizer.minimumNumberOfTouches = DrawingMode.minTouchCount
         self.drawingModeGestureRecognizer.maximumNumberOfTouches = DrawingMode.maxTouchCount
         self.addGestureRecognizer(self.drawingModeGestureRecognizer)
-        
+
         self.nodePanGestureRecognizer = InstantPanGestureRecognizer(target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
         self.nodePanGestureRecognizer.delegate = self
         self.nodePanGestureRecognizer.minimumNumberOfTouches = 1
@@ -289,27 +291,29 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         }
     }
     
-    /*
-    @objc func createNodeGestureRecognizerUpdate(_ gestureRecognizer : PencilCircleGestureRecognizer) {
-        if gestureRecognizer.state == .ended {
-            if let circleCenter = gestureRecognizer.circleCenter {
-                self.model.createNode(at: circleCenter)
-                self.modelView.update()
-            }
+    func strokeCompletion(_ stroke: PencilStroke) {
+        guard let gesture = stroke.gesture else {
+            return
         }
-    }
-    
-    @objc func deleteGestureRecognizerUpdate(_ gestureRecognizer : PencilDeleteGestureRecognizer) {
-        if gestureRecognizer.state == .ended {
-            if let intersection = gestureRecognizer.intersection {
-                if let nodeView = self.modelView.hitTest(intersection, with: nil) as? NodeView {
-                    self.model.deleteNode(nodeView.node)
-                    self.modelView.update()
+        
+        let location = stroke.pathFrame!.center
+        print("\(gesture) at \(location)")
+        
+        switch gesture {
+            case .create:
+                self.model.createNode(at: location)
+            case .scratch:
+                for node in self.model.nodes {
+                    if node.cgPoint.distance(to: location) < NodeView.radius * NodeView.touchTargetScale {
+                        self.model.deleteNode(node)
+                        self.modelView.update()
+                        break
+                    }
                 }
-            }
         }
+        
+        self.modelView.update()
     }
-     */
     
     override func layoutSubviews() {
         self.pencilStrokeView.frame = self.bounds

@@ -8,6 +8,13 @@
 import CoreML
 import UIKit
 
+extension CGRect {
+    
+    var center: CGPoint {
+        return CGPoint(x: self.origin.x + self.width / 2.0, y: self.origin.y + self.height / 2.0)
+    }
+}
+
 enum PencilGesture: String, CaseIterable, Identifiable {
     var id: Self { self }
     
