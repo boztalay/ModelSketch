@@ -22,6 +22,21 @@
 		FB077B5729F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5629F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel */; };
 		FB077B5929F051CF004F0857 /* UIImage+CVPixelBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5829F051CF004F0857 /* UIImage+CVPixelBuffer.swift */; };
 		FB077B5B29F05229004F0857 /* CGImage+CVPixelBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5A29F05229004F0857 /* CGImage+CVPixelBuffer.swift */; };
+		FB077B6E29F0596C004F0857 /* CGImage+RawBytes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B5F29F0596C004F0857 /* CGImage+RawBytes.swift */; };
+		FB077B6F29F0596C004F0857 /* MLMultiArray+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6029F0596C004F0857 /* MLMultiArray+Helpers.swift */; };
+		FB077B7029F0596C004F0857 /* UIImage+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6129F0596C004F0857 /* UIImage+Extensions.swift */; };
+		FB077B7129F0596C004F0857 /* CGImagePropertyOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6229F0596C004F0857 /* CGImagePropertyOrientation.swift */; };
+		FB077B7229F0596C004F0857 /* CVPixelBuffer+Create.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6329F0596C004F0857 /* CVPixelBuffer+Create.swift */; };
+		FB077B7329F0596C004F0857 /* UIImage+RawBytes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6429F0596C004F0857 /* UIImage+RawBytes.swift */; };
+		FB077B7429F0596C004F0857 /* MLModel+Images.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6529F0596C004F0857 /* MLModel+Images.swift */; };
+		FB077B7529F0596C004F0857 /* NonMaxSuppression.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6629F0596C004F0857 /* NonMaxSuppression.swift */; };
+		FB077B7629F0596C004F0857 /* CVPixelBuffer+Resize.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6729F0596C004F0857 /* CVPixelBuffer+Resize.swift */; };
+		FB077B7729F0596C004F0857 /* CoreML+Combine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6829F0596C004F0857 /* CoreML+Combine.swift */; };
+		FB077B7829F0596C004F0857 /* MLMultiArray+Image.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6929F0596C004F0857 /* MLMultiArray+Image.swift */; };
+		FB077B7929F0596C004F0857 /* Predictions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6A29F0596C004F0857 /* Predictions.swift */; };
+		FB077B7A29F0596C004F0857 /* CVPixelBuffer+Rotate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6B29F0596C004F0857 /* CVPixelBuffer+Rotate.swift */; };
+		FB077B7B29F0596C004F0857 /* Array+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6C29F0596C004F0857 /* Array+Extensions.swift */; };
+		FB077B7C29F0596C004F0857 /* Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6D29F0596C004F0857 /* Math.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +56,21 @@
 		FB077B5629F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = ModelSketchGestureClassifier.mlmodel; sourceTree = "<group>"; };
 		FB077B5829F051CF004F0857 /* UIImage+CVPixelBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+CVPixelBuffer.swift"; sourceTree = "<group>"; };
 		FB077B5A29F05229004F0857 /* CGImage+CVPixelBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGImage+CVPixelBuffer.swift"; sourceTree = "<group>"; };
+		FB077B5F29F0596C004F0857 /* CGImage+RawBytes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CGImage+RawBytes.swift"; sourceTree = "<group>"; };
+		FB077B6029F0596C004F0857 /* MLMultiArray+Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MLMultiArray+Helpers.swift"; sourceTree = "<group>"; };
+		FB077B6129F0596C004F0857 /* UIImage+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Extensions.swift"; sourceTree = "<group>"; };
+		FB077B6229F0596C004F0857 /* CGImagePropertyOrientation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGImagePropertyOrientation.swift; sourceTree = "<group>"; };
+		FB077B6329F0596C004F0857 /* CVPixelBuffer+Create.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CVPixelBuffer+Create.swift"; sourceTree = "<group>"; };
+		FB077B6429F0596C004F0857 /* UIImage+RawBytes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+RawBytes.swift"; sourceTree = "<group>"; };
+		FB077B6529F0596C004F0857 /* MLModel+Images.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MLModel+Images.swift"; sourceTree = "<group>"; };
+		FB077B6629F0596C004F0857 /* NonMaxSuppression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NonMaxSuppression.swift; sourceTree = "<group>"; };
+		FB077B6729F0596C004F0857 /* CVPixelBuffer+Resize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CVPixelBuffer+Resize.swift"; sourceTree = "<group>"; };
+		FB077B6829F0596C004F0857 /* CoreML+Combine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CoreML+Combine.swift"; sourceTree = "<group>"; };
+		FB077B6929F0596C004F0857 /* MLMultiArray+Image.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MLMultiArray+Image.swift"; sourceTree = "<group>"; };
+		FB077B6A29F0596C004F0857 /* Predictions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Predictions.swift; sourceTree = "<group>"; };
+		FB077B6B29F0596C004F0857 /* CVPixelBuffer+Rotate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CVPixelBuffer+Rotate.swift"; sourceTree = "<group>"; };
+		FB077B6C29F0596C004F0857 /* Array+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Array+Extensions.swift"; sourceTree = "<group>"; };
+		FB077B6D29F0596C004F0857 /* Math.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Math.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +125,21 @@
 		FB077B5C29F05741004F0857 /* CoreMLHelpers */ = {
 			isa = PBXGroup;
 			children = (
+				FB077B6C29F0596C004F0857 /* Array+Extensions.swift */,
+				FB077B5F29F0596C004F0857 /* CGImage+RawBytes.swift */,
+				FB077B6229F0596C004F0857 /* CGImagePropertyOrientation.swift */,
+				FB077B6829F0596C004F0857 /* CoreML+Combine.swift */,
+				FB077B6329F0596C004F0857 /* CVPixelBuffer+Create.swift */,
+				FB077B6729F0596C004F0857 /* CVPixelBuffer+Resize.swift */,
+				FB077B6B29F0596C004F0857 /* CVPixelBuffer+Rotate.swift */,
+				FB077B6D29F0596C004F0857 /* Math.swift */,
+				FB077B6529F0596C004F0857 /* MLModel+Images.swift */,
+				FB077B6029F0596C004F0857 /* MLMultiArray+Helpers.swift */,
+				FB077B6929F0596C004F0857 /* MLMultiArray+Image.swift */,
+				FB077B6629F0596C004F0857 /* NonMaxSuppression.swift */,
+				FB077B6A29F0596C004F0857 /* Predictions.swift */,
+				FB077B6129F0596C004F0857 /* UIImage+Extensions.swift */,
+				FB077B6429F0596C004F0857 /* UIImage+RawBytes.swift */,
 				FB077B5829F051CF004F0857 /* UIImage+CVPixelBuffer.swift */,
 				FB077B5A29F05229004F0857 /* CGImage+CVPixelBuffer.swift */,
 			);
@@ -201,17 +246,32 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FB077B6F29F0596C004F0857 /* MLMultiArray+Helpers.swift in Sources */,
+				FB077B7229F0596C004F0857 /* CVPixelBuffer+Create.swift in Sources */,
+				FB077B7629F0596C004F0857 /* CVPixelBuffer+Resize.swift in Sources */,
 				FB077B4B29E8BECD004F0857 /* PencilStrokeView.swift in Sources */,
+				FB077B7129F0596C004F0857 /* CGImagePropertyOrientation.swift in Sources */,
 				FB077B5729F04FF7004F0857 /* ModelSketchGestureClassifier.mlmodel in Sources */,
 				FB077B4729E65531004F0857 /* Model.swift in Sources */,
+				FB077B7329F0596C004F0857 /* UIImage+RawBytes.swift in Sources */,
+				FB077B6E29F0596C004F0857 /* CGImage+RawBytes.swift in Sources */,
+				FB077B7B29F0596C004F0857 /* Array+Extensions.swift in Sources */,
 				FB077B5B29F05229004F0857 /* CGImage+CVPixelBuffer.swift in Sources */,
+				FB077B7C29F0596C004F0857 /* Math.swift in Sources */,
 				FB077B5229EF638F004F0857 /* GesturesView.swift in Sources */,
 				FB077B5929F051CF004F0857 /* UIImage+CVPixelBuffer.swift in Sources */,
 				FB077B4929E722ED004F0857 /* PencilDeleteGestureRecognizer.swift in Sources */,
+				FB077B7A29F0596C004F0857 /* CVPixelBuffer+Rotate.swift in Sources */,
 				FB077B3329E4720F004F0857 /* ContentView.swift in Sources */,
+				FB077B7829F0596C004F0857 /* MLMultiArray+Image.swift in Sources */,
 				FB077B4529E654DE004F0857 /* InstantPanGestureRecognizer.swift in Sources */,
+				FB077B7929F0596C004F0857 /* Predictions.swift in Sources */,
+				FB077B7729F0596C004F0857 /* CoreML+Combine.swift in Sources */,
+				FB077B7429F0596C004F0857 /* MLModel+Images.swift in Sources */,
 				FB077B4329E472CA004F0857 /* SketchView.swift in Sources */,
+				FB077B7029F0596C004F0857 /* UIImage+Extensions.swift in Sources */,
 				FB077B5429EF7349004F0857 /* GestureTrainerView.swift in Sources */,
+				FB077B7529F0596C004F0857 /* NonMaxSuppression.swift in Sources */,
 				FB077B3129E4720F004F0857 /* ModelSketchApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
