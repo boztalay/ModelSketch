@@ -17,11 +17,17 @@ struct GesturesView: View {
     }
     
     @State private var selectedGesture = TrainableGesture.create
+    @State private var strokeImage = UIImage(systemName: "pencil.line")!
     
     var body: some View {
         HStack {
-            RepresentedGestureTrainerView()
+            RepresentedGestureTrainerView(strokeCompletion: strokeCompletion)
             Form {
+                HStack{
+                    Spacer()
+                    Image(uiImage: strokeImage).frame(width: 100.0, height: 100.0).aspectRatio(contentMode: .fit)
+                    Spacer()
+                }
                 Picker("Gesture to Train", selection: $selectedGesture) {
                     ForEach(TrainableGesture.allCases) { gesture in
                         Text(gesture.rawValue)
@@ -36,6 +42,10 @@ struct GesturesView: View {
                 }
             }.frame(width: 350.0)
         }
+    }
+    
+    func strokeCompletion(_ image: UIImage) {
+        strokeImage = image
     }
     
     func saveImages() {

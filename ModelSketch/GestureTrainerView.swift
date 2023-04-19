@@ -32,9 +32,13 @@ class GestureTrainerView: UIView {
 
 struct RepresentedGestureTrainerView: UIViewRepresentable {
     typealias UIViewType = GestureTrainerView
+    
+    @State var strokeCompletion: (UIImage) -> ()
 
     func makeUIView(context: Context) -> GestureTrainerView {
-        return GestureTrainerView()
+        let view = GestureTrainerView()
+        view.pencilStrokeView.strokeCompletion = self.strokeCompletion
+        return view
     }
     
     func updateUIView(_ uiView: GestureTrainerView, context: Context) {

@@ -44,6 +44,8 @@ class PencilStrokeView: UIView {
     var strokes: [AnimatedPencilStroke]
     var panGestureRecognizer: PencilInstantPanGestureRecognizer!
     
+    var strokeCompletion: ((UIImage) -> ())?
+    
     var currentStroke: AnimatedPencilStroke? {
         return self.strokes.last
     }
@@ -77,6 +79,8 @@ class PencilStrokeView: UIView {
         
         if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
             if let currentStroke = self.currentStroke {
+                self.getStrokeImage()
+
                 currentStroke.startAnimating()
                 currentStroke.animator.completion = { _ in
                     self.strokes.remove(at: 0)
@@ -85,6 +89,38 @@ class PencilStrokeView: UIView {
         }
         
         self.setNeedsDisplay()
+    }
+    
+    func getStrokeImage() {
+        guard let currentStroke = self.currentStroke, let strokeCompletion = self.strokeCompletion else {
+            return
+        }
+        
+        guard currentStroke.stroke.points.count > 1 else {
+            return
+        }
+        
+        let points = currentStroke.stroke.points
+        var minX = points.first!.x
+        var minY = points.first!.y
+        var maxX = minX
+        var maxY = minY
+        
+        for point in points {
+            minX = min(point.x, minX)
+            minY = min(point.y, minY)
+            maxX = max(point.x, maxX)
+            maxY = max(point.y, maxY)
+        }
+        
+        let bounds = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY).insetBy(dx: -2.0, dy: -2.0)
+        
+        let renderer = UIGraphicsImageRenderer(bounds: bounds)
+        let image = renderer.image { rendererContext in
+            self.layer.render(in: rendererContext.cgContext)
+        }
+
+        strokeCompletion(image)
     }
     
     override func draw(_ rect: CGRect) {
