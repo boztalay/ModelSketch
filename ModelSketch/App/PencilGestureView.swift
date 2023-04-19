@@ -1,5 +1,5 @@
 //
-//  PencilStrokeView.swift
+//  PencilGestureView.swift
 //  ModelSketch
 //
 //  Created by Ben Oztalay on 4/13/23.
