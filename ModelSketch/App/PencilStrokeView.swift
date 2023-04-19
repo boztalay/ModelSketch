@@ -80,7 +80,7 @@ class PencilStrokeView: UIView {
             self.strokes.append(AnimatedPencilStroke(stroke: gestureRecognizer.stroke!))
         }
         
-        if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
+        if gestureRecognizer.state == .ended {
             if let currentStroke = self.currentStroke {
                 if let strokeCompletion = self.strokeCompletion {
                     strokeCompletion(currentStroke.stroke)
@@ -91,6 +91,10 @@ class PencilStrokeView: UIView {
                     self.strokes.remove(at: 0)
                 }
             }
+        }
+        
+        if gestureRecognizer.state == .cancelled {
+            self.strokes.remove(at: 0)
         }
         
         self.setNeedsDisplay()
