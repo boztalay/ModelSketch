@@ -111,15 +111,3 @@ class PencilStrokeView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 }
-
-struct RepresentedPencilStrokeView: UIViewRepresentable {
-    typealias UIViewType = PencilStrokeView
-
-    func makeUIView(context: Context) -> PencilStrokeView {
-        return PencilStrokeView()
-    }
-    
-    func updateUIView(_ uiView: PencilStrokeView, context: Context) {
-
-    }
-}

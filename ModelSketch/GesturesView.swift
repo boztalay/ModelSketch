@@ -20,7 +20,7 @@ struct GesturesView: View {
     
     var body: some View {
         HStack {
-            RepresentedPencilStrokeView()
+            RepresentedGestureTrainerView()
             Form {
                 Picker("Gesture to Train", selection: $selectedGesture) {
                     ForEach(TrainableGesture.allCases) { gesture in
