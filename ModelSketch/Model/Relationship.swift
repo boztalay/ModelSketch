@@ -13,61 +13,89 @@ import Foundation
 
 enum RelationshipPriority: Int, Comparable {
 
-    case fixed           = 0
-    case userInteraction = 1
-    case normal          = 2
+    case fixed     = 0
+    case userInput = 1
+    case normal    = 2
     
     static func < (lhs: RelationshipPriority, rhs: RelationshipPriority) -> Bool {
         return lhs.rawValue < rhs.rawValue
     }
 }
 
-class Relationship {
+class Relationship: Hashable {
+    
+    static var nextId: Int = 0
+    
+    static func getNextId() -> Int {
+        let id = Node.nextId
+        Node.nextId += 1
+        return id
+    }
 
+    let id: Int
+    let nodeIn: Node?
+    let nodeOut: Node
     let priority: RelationshipPriority
     let temporary: Bool
     
-    init(priority: RelationshipPriority, temporary: Bool) {
+    init(nodeIn: Node?, nodeOut: Node, priority: RelationshipPriority, temporary: Bool) {
+        self.id = Relationship.getNextId()
+        self.nodeIn = nodeIn
+        self.nodeOut = nodeOut
         self.priority = priority
         self.temporary = temporary
     }
     
-    func apply() {
+    func propagate() {
+        let (affectedX, affectedY) = self.apply()
+        
+        if affectedX {
+            for relationship in self.nodeOut.outgoingRelationshipsX {
+                relationship.propagate()
+            }
+        }
+        
+        if affectedY {
+            for relationship in self.nodeOut.outgoingRelationshipsY {
+                relationship.propagate()
+            }
+        }
+    }
+    
+    func apply() -> (Bool, Bool) {
         fatalError("Need to implement apply")
     }
     
     func contains(_ node: Node) -> Bool {
-        fatalError("Need to implement contains")
+        if let nodeIn = self.nodeIn {
+            if node == nodeIn {
+                return true
+            }
+        }
+        
+        return (node == self.nodeOut)
+    }
+    
+    static func == (lhs: Relationship, rhs: Relationship) -> Bool {
+        return (lhs.id == rhs.id)
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(self.id)
     }
 }
 
-class SingleNodeRelationship: Relationship {
-    
-    let node: Node
+class InputRelationship: Relationship {
     
     init(node: Node, priority: RelationshipPriority, temporary: Bool) {
-        self.node = node
-        super.init(priority: priority, temporary: temporary)
-    }
-    
-    override func contains(_ node: Node) -> Bool {
-        return (self.node == node)
+        super.init(nodeIn: nil, nodeOut: node, priority: priority, temporary: temporary)
     }
 }
 
 class NodeToNodeRelationship: Relationship {
-    
-    let nodeIn: Node
-    let nodeOut: Node
-    
+
     init(nodeIn: Node, nodeOut: Node, priority: RelationshipPriority, temporary: Bool) {
-        self.nodeIn = nodeIn
-        self.nodeOut = nodeOut
-        super.init(priority: priority, temporary: temporary)
-    }
-    
-    override func contains(_ node: Node) -> Bool {
-        return (self.nodeIn == node || self.nodeOut == node)
+        super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: priority, temporary: temporary)
     }
 }
 
@@ -75,29 +103,29 @@ class NodeToNodeRelationship: Relationship {
 // Relationships
 //
 
-class AffixRelationship: SingleNodeRelationship {
+class AffixRelationship: InputRelationship {
     
     let cgPoint: CGPoint
     
-    init(node: Node, cgPoint: CGPoint, temporary: Bool) {
+    init(node: Node, cgPoint: CGPoint, priority: RelationshipPriority, temporary: Bool) {
         self.cgPoint = cgPoint
-        super.init(node: node, priority: .fixed, temporary: temporary)
+        super.init(node: node, priority: priority, temporary: temporary)
     }
     
     convenience init(node: Node, cgPoint: CGPoint) {
-        self.init(node: node, cgPoint: cgPoint, temporary: false)
+        self.init(node: node, cgPoint: cgPoint, priority: .fixed, temporary: false)
     }
-    
-    override func apply() {
-        self.node.set(x: self.cgPoint.x, with: self)
-        self.node.set(y: self.cgPoint.y, with: self)
+
+    override func apply() -> (Bool, Bool) {
+        return (self.nodeOut.set(x: self.cgPoint.x, with: self),
+                self.nodeOut.set(y: self.cgPoint.y, with: self))
     }
 }
 
-class TemporaryAffixRelationship: AffixRelationship {
+class FollowPencilRelationship: AffixRelationship {
     
     init(node: Node, cgPoint: CGPoint) {
-        super.init(node: node, cgPoint: cgPoint, temporary: true)
+        super.init(node: node, cgPoint: cgPoint, priority: .userInput, temporary: true)
     }
 }
 
@@ -105,10 +133,11 @@ class EqualXRelationship: NodeToNodeRelationship {
     
     init(nodeIn: Node, nodeOut: Node) {
         super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
+        nodeIn.add(outgoingRelationshipX: self)
     }
     
-    override func apply() {
-        self.nodeOut.set(x: self.nodeIn.x, with: self)
+    override func apply() -> (Bool, Bool) {
+        return (self.nodeOut.set(x: self.nodeIn!.x, with: self), false)
     }
 }
 
@@ -116,9 +145,10 @@ class EqualYRelationship: NodeToNodeRelationship {
     
     init(nodeIn: Node, nodeOut: Node) {
         super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
+        nodeIn.add(outgoingRelationshipY: self)
     }
     
-    override func apply() {
-        self.nodeOut.set(y: self.nodeIn.y, with: self)
+    override func apply() -> (Bool, Bool) {
+        return (false, self.nodeOut.set(y: self.nodeIn!.y, with: self))
     }
 }

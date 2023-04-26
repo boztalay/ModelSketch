@@ -20,6 +20,8 @@ class Node: Hashable {
     let id: Int
     private(set) var x: Double
     private(set) var y: Double
+    private(set) var outgoingRelationshipsX: [Relationship]
+    private(set) var outgoingRelationshipsY: [Relationship]
     
     private var lastRelationshipPriorityX: RelationshipPriority?
     private var lastRelationshipPriorityY: RelationshipPriority?
@@ -32,28 +34,52 @@ class Node: Hashable {
         self.id = Node.getNextId()
         self.x = 0.0
         self.y = 0.0
+        self.outgoingRelationshipsX = []
+        self.outgoingRelationshipsY = []
     }
     
-    func set(x value: Double, with relationship: Relationship) {
+    func add(outgoingRelationshipX relationship: Relationship) {
+        self.outgoingRelationshipsX.append(relationship)
+    }
+    
+    func add(outgoingRelationshipY relationship: Relationship) {
+        self.outgoingRelationshipsY.append(relationship)
+    }
+    
+    func remove(relationship: Relationship) {
+        if let index = self.outgoingRelationshipsX.firstIndex(of: relationship) {
+            self.outgoingRelationshipsX.remove(at: index)
+        }
+        
+        if let index = self.outgoingRelationshipsY.firstIndex(of: relationship) {
+            self.outgoingRelationshipsY.remove(at: index)
+        }
+    }
+    
+    func set(x value: Double, with relationship: Relationship) -> Bool {
         if let lastRelationshipPriorityX = self.lastRelationshipPriorityX {
             if relationship.priority >= lastRelationshipPriorityX {
-                return
+                return false
             }
         }
         
         self.x = value
         self.lastRelationshipPriorityX = relationship.priority
+        
+        return true
     }
 
-    func set(y value: Double, with relationship: Relationship) {
+    func set(y value: Double, with relationship: Relationship) -> Bool {
         if let lastRelationshipPriorityY = self.lastRelationshipPriorityY {
             if relationship.priority >= lastRelationshipPriorityY {
-                return
+                return false
             }
         }
         
         self.y = value
         self.lastRelationshipPriorityY = relationship.priority
+        
+        return true
     }
     
     func update() {
@@ -104,7 +130,7 @@ class Model {
     func createNode(at cgPoint: CGPoint) {
         let node = Node()
         self.nodes.append(node)
-        self.relationships.append(TemporaryAffixRelationship(node: node, cgPoint: cgPoint))
+        self.add(relationship: FollowPencilRelationship(node: node, cgPoint: cgPoint))
     }
     
     func createNode(at x: Double, _ y: Double) {
@@ -145,7 +171,16 @@ class Model {
         }
 
         for relationship in self.relationships {
-            relationship.apply()
+            if relationship.nodeIn == nil {
+                relationship.propagate()
+            }
+        }
+        
+        // TODO: This could be more efficient
+        for relationship in self.relationships.filter({ $0.temporary }) {
+            for node in self.nodes {
+                node.remove(relationship: relationship)
+            }
         }
         
         self.relationships.removeAll(where: { $0.temporary })
