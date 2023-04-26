@@ -164,6 +164,7 @@ class Model {
     func add(relationship: Relationship) {
         // TODO: Maybe validate that the relationship contains valid nodes?
         self.relationships.append(relationship)
+        self.relationships.sort(by: { $0.priority > $1.priority })
     }
     
     func update() {
