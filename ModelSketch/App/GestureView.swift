@@ -8,12 +8,32 @@
 import SwiftUI
 import UIKit
 
+class MockNodeView: UIView {
+    
+    func set(position: CGPoint) {
+        self.frame = CGRect(
+            origin: CGPoint(
+                x: position.x - NodeView.radius,
+                y: position.y - NodeView.radius
+            ),
+            size: CGSize(
+                width: NodeView.radius * 2.0,
+                height: NodeView.radius * 2.0
+            )
+        )
+        
+        self.layer.cornerRadius = NodeView.radius
+        self.layer.borderColor = NodeViewHighlightState.normal.color.cgColor
+        self.layer.borderWidth = 3.0
+    }
+}
+
 class GestureView: UIView {
     
     static let nodeViewSpacing = 25.0
     
     var pencilStrokeView: PencilStrokeView!
-    var nodeViews: [NodeView]!
+    var nodeViews: [MockNodeView]!
     
     init() {
         super.init(frame: .zero)
@@ -23,10 +43,10 @@ class GestureView: UIView {
         self.addSubview(self.pencilStrokeView)
         
         self.nodeViews = [
-            NodeView(node: Node(x: 0.0, y: 0.0)),
-            NodeView(node: Node(x: 0.0, y: 0.0)),
-            NodeView(node: Node(x: 0.0, y: 0.0)),
-            NodeView(node: Node(x: 0.0, y: 0.0))
+            MockNodeView(),
+            MockNodeView(),
+            MockNodeView(),
+            MockNodeView()
         ]
         
         for nodeView in self.nodeViews {
@@ -38,21 +58,33 @@ class GestureView: UIView {
     override func layoutSubviews() {
         self.pencilStrokeView.frame = self.bounds
         
-        self.nodeViews[0].node.x = self.center.x + GestureView.nodeViewSpacing
-        self.nodeViews[0].node.y = self.center.y + GestureView.nodeViewSpacing
+        self.nodeViews[0].set(
+            position: CGPoint(
+                x: self.center.x + GestureView.nodeViewSpacing,
+                y: self.center.y + GestureView.nodeViewSpacing
+            )
+        )
         
-        self.nodeViews[1].node.x = self.center.x - GestureView.nodeViewSpacing
-        self.nodeViews[1].node.y = self.center.y + GestureView.nodeViewSpacing
+        self.nodeViews[1].set(
+            position: CGPoint(
+                x: self.center.x - GestureView.nodeViewSpacing,
+                y: self.center.y + GestureView.nodeViewSpacing
+            )
+        )
         
-        self.nodeViews[2].node.x = self.center.x + GestureView.nodeViewSpacing
-        self.nodeViews[2].node.y = self.center.y - GestureView.nodeViewSpacing
+        self.nodeViews[2].set(
+            position: CGPoint(
+                x: self.center.x + GestureView.nodeViewSpacing,
+                y: self.center.y - GestureView.nodeViewSpacing
+            )
+        )
         
-        self.nodeViews[3].node.x = self.center.x - GestureView.nodeViewSpacing
-        self.nodeViews[3].node.y = self.center.y - GestureView.nodeViewSpacing
-        
-        for nodeView in self.nodeViews {
-            nodeView.update(in: self)
-        }
+        self.nodeViews[3].set(
+            position: CGPoint(
+                x: self.center.x - GestureView.nodeViewSpacing,
+                y: self.center.y - GestureView.nodeViewSpacing
+            )
+        )
     }
     
     required init?(coder: NSCoder) {

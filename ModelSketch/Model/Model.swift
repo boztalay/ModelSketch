@@ -18,28 +18,47 @@ class Node: Hashable {
     }
 
     let id: Int
-    var x: Double
-    var y: Double
+    private(set) var x: Double
+    private(set) var y: Double
+    
+    private var lastRelationshipPriorityX: RelationshipPriority?
+    private var lastRelationshipPriorityY: RelationshipPriority?
     
     var cgPoint: CGPoint {
-        get {
-            return CGPoint(x: self.x, y: self.y)
-        } set {
-            self.x = newValue.x
-            self.y = newValue.y
+        return CGPoint(x: self.x, y: self.y)
+    }
+    
+    init() {
+        self.id = Node.getNextId()
+        self.x = 0.0
+        self.y = 0.0
+    }
+    
+    func set(x value: Double, with relationship: Relationship) {
+        if let lastRelationshipPriorityX = self.lastRelationshipPriorityX {
+            if relationship.priority >= lastRelationshipPriorityX {
+                return
+            }
         }
+        
+        self.x = value
+        self.lastRelationshipPriorityX = relationship.priority
+    }
+
+    func set(y value: Double, with relationship: Relationship) {
+        if let lastRelationshipPriorityY = self.lastRelationshipPriorityY {
+            if relationship.priority >= lastRelationshipPriorityY {
+                return
+            }
+        }
+        
+        self.y = value
+        self.lastRelationshipPriorityY = relationship.priority
     }
     
-    init(cgPoint: CGPoint) {
-        self.id = Node.getNextId()
-        self.x = cgPoint.x
-        self.y = cgPoint.y
-    }
-    
-    init(x: Double, y: Double) {
-        self.id = Node.getNextId()
-        self.x = x
-        self.y = y
+    func update() {
+        self.lastRelationshipPriorityX = nil
+        self.lastRelationshipPriorityY = nil
     }
     
     static func == (lhs: Node, rhs: Node) -> Bool {
@@ -74,18 +93,22 @@ class Model {
 
     private(set) var nodes: [Node]
     private(set) var connections: [Connection]
+    private(set) var relationships: [Relationship]
     
     init() {
         self.nodes = []
         self.connections = []
+        self.relationships = []
     }
     
     func createNode(at cgPoint: CGPoint) {
-        self.nodes.append(Node(cgPoint: cgPoint))
+        let node = Node()
+        self.nodes.append(node)
+        self.relationships.append(TemporaryAffixRelationship(node: node, cgPoint: cgPoint))
     }
     
     func createNode(at x: Double, _ y: Double) {
-        self.nodes.append(Node(x: x, y: y))
+        self.createNode(at: CGPoint(x: x, y: y))
     }
     
     func deleteNode(_ node: Node) {
@@ -95,6 +118,7 @@ class Model {
         
         self.nodes.remove(at: index)
         self.connections.removeAll(where: { $0.contains(node) })
+        self.relationships.removeAll(where: { $0.contains(node) })
     }
     
     func connect(between nodeA: Node, _ nodeB: Node) {
@@ -108,5 +132,22 @@ class Model {
         }
         
         self.connections.append(connection)
+    }
+    
+    func add(relationship: Relationship) {
+        // TODO: Maybe validate that the relationship contains valid nodes?
+        self.relationships.append(relationship)
+    }
+    
+    func update() {
+        for node in self.nodes {
+            node.update()
+        }
+
+        for relationship in self.relationships {
+            relationship.apply()
+        }
+        
+        self.relationships.removeAll(where: { $0.temporary })
     }
 }

@@ -120,7 +120,7 @@ class ModelView: UIView {
         }
         
         self.partialConnections.removeValue(forKey: nodeView)
-        self.setNeedsDisplay()
+        self.update()
     }
     
     func drawLine(start: CGPoint, end: CGPoint, lineWidth: CGFloat, color: UIColor) {
@@ -149,6 +149,8 @@ class ModelView: UIView {
     }
     
     func update() {
+        self.model.update()
+        
         for node in self.model.nodes {
             if self.nodeViews[node] == nil {
                 let nodeView = NodeView(node: node)
@@ -236,7 +238,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             if gestureRecognizer.isHardPress {
                 self.modelView.updateConnection(from: nodeView, at: location)
             } else if let translationDelta = gestureRecognizer.translationDelta {
-                nodeView.node.cgPoint = nodeView.node.cgPoint.adding(translationDelta)
+                self.modelView.model.add(relationship: TemporaryAffixRelationship(node: nodeView.node, cgPoint: nodeView.node.cgPoint.adding(translationDelta)))
                 self.modelView.update()
             }
         }
@@ -285,6 +287,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
                 self.model.deleteNode(node)
             }
         }
+        
+        self.modelView.update()
     }
 
     override func layoutSubviews() {

@@ -57,7 +57,7 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
         if let lastLocation = self.lastLocation {
             self.translationDelta = location.subtracting(lastLocation)
         }
-
+ 
         self.lastLocation = location
         
         if self.state == .possible {

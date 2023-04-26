@@ -38,6 +38,7 @@
 		FB077B7B29F0596C004F0857 /* Array+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6C29F0596C004F0857 /* Array+Extensions.swift */; };
 		FB077B7C29F0596C004F0857 /* Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B6D29F0596C004F0857 /* Math.swift */; };
 		FB077B7E29F0A05F004F0857 /* NodePanGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077B7D29F0A05F004F0857 /* NodePanGestureRecognizer.swift */; };
+		FB7EC65F29F99C87004A76C5 /* Relationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB7EC65E29F99C87004A76C5 /* Relationship.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,6 +74,7 @@
 		FB077B6C29F0596C004F0857 /* Array+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Array+Extensions.swift"; sourceTree = "<group>"; };
 		FB077B6D29F0596C004F0857 /* Math.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Math.swift; sourceTree = "<group>"; };
 		FB077B7D29F0A05F004F0857 /* NodePanGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodePanGestureRecognizer.swift; sourceTree = "<group>"; };
+		FB7EC65E29F99C87004A76C5 /* Relationship.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Relationship.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -152,6 +154,7 @@
 			isa = PBXGroup;
 			children = (
 				FB077B4629E65531004F0857 /* Model.swift */,
+				FB7EC65E29F99C87004A76C5 /* Relationship.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -276,6 +279,7 @@
 				FB077B7029F0596C004F0857 /* UIImage+Extensions.swift in Sources */,
 				FB077B5429EF7349004F0857 /* GestureView.swift in Sources */,
 				FB077B7529F0596C004F0857 /* NonMaxSuppression.swift in Sources */,
+				FB7EC65F29F99C87004A76C5 /* Relationship.swift in Sources */,
 				FB077B3129E4720F004F0857 /* ModelSketchApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
