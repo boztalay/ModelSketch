@@ -117,8 +117,8 @@ class ModelView: UIView {
     func completeConnection(from nodeView: NodeView, at location: CGPoint) {
         if let endNodeView = self.getNodeView(at: location) {
             self.model.connect(between: nodeView.node, endNodeView.node)
-            self.model.add(relationship: EqualXRelationship(nodeIn: nodeView.node, nodeOut: endNodeView.node))
-            self.model.add(relationship: EqualXRelationship(nodeIn: endNodeView.node, nodeOut: nodeView.node))
+            self.model.add(relationship: EqualXYRelationship(nodeIn: nodeView.node, nodeOut: endNodeView.node))
+            self.model.add(relationship: EqualYXRelationship(nodeIn: endNodeView.node, nodeOut: nodeView.node))
             self.model.add(relationship: FollowPencilRelationship(node: nodeView.node, cgPoint: nodeView.node.cgPoint))
         }
         

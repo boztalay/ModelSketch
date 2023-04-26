@@ -129,7 +129,7 @@ class FollowPencilRelationship: AffixRelationship {
     }
 }
 
-class EqualXRelationship: NodeToNodeRelationship {
+class EqualXXRelationship: NodeToNodeRelationship {
     
     init(nodeIn: Node, nodeOut: Node) {
         super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
@@ -141,7 +141,7 @@ class EqualXRelationship: NodeToNodeRelationship {
     }
 }
 
-class EqualYRelationship: NodeToNodeRelationship {
+class EqualYYRelationship: NodeToNodeRelationship {
     
     init(nodeIn: Node, nodeOut: Node) {
         super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
@@ -152,3 +152,28 @@ class EqualYRelationship: NodeToNodeRelationship {
         return (false, self.nodeOut.set(y: self.nodeIn!.y, with: self))
     }
 }
+
+class EqualXYRelationship: NodeToNodeRelationship {
+    
+    init(nodeIn: Node, nodeOut: Node) {
+        super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
+        nodeIn.add(outgoingRelationshipX: self)
+    }
+    
+    override func apply() -> (Bool, Bool) {
+        return (false, self.nodeOut.set(y: self.nodeIn!.x, with: self))
+    }
+}
+
+class EqualYXRelationship: NodeToNodeRelationship {
+    
+    init(nodeIn: Node, nodeOut: Node) {
+        super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
+        nodeIn.add(outgoingRelationshipY: self)
+    }
+    
+    override func apply() -> (Bool, Bool) {
+        return (self.nodeOut.set(x: self.nodeIn!.y, with: self), false)
+    }
+}
+
