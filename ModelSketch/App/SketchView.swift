@@ -119,6 +119,7 @@ class ModelView: UIView {
             self.model.connect(between: nodeView.node, endNodeView.node)
             self.model.add(relationship: EqualXRelationship(nodeIn: nodeView.node, nodeOut: endNodeView.node))
             self.model.add(relationship: EqualXRelationship(nodeIn: endNodeView.node, nodeOut: nodeView.node))
+            self.model.add(relationship: FollowPencilRelationship(node: nodeView.node, cgPoint: nodeView.node.cgPoint))
         }
         
         self.partialConnections.removeValue(forKey: nodeView)
