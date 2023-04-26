@@ -117,8 +117,8 @@ class ModelView: UIView {
     func completeConnection(from nodeView: NodeView, at location: CGPoint) {
         if let endNodeView = self.getNodeView(at: location) {
             self.model.connect(between: nodeView.node, endNodeView.node)
-            self.model.add(relationship: EqualXYRelationship(nodeIn: nodeView.node, nodeOut: endNodeView.node))
-            self.model.add(relationship: EqualYXRelationship(nodeIn: endNodeView.node, nodeOut: nodeView.node))
+            self.model.add(relationship: EqualXXRelationship(nodeIn: nodeView.node, nodeOut: endNodeView.node))
+            self.model.add(relationship: EqualXXRelationship(nodeIn: endNodeView.node, nodeOut: nodeView.node))
             self.model.add(relationship: FollowPencilRelationship(node: nodeView.node, cgPoint: nodeView.node.cgPoint))
         }
         
@@ -263,7 +263,9 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         
         switch gesture {
             case .create:
-                self.model.createNode(at: location)
+                let node = self.model.createNode(at: location)
+                self.model.add(relationship: LimitXRelationship(node: node, min: 200.0, max: 500.0))
+                self.model.add(relationship: LimitYRelationship(node: node, min: 200.0, max: 500.0))
             case .scratch:
                 self.handleScratchGesture(stroke)
             default:

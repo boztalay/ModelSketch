@@ -127,14 +127,15 @@ class Model {
         self.relationships = []
     }
     
-    func createNode(at cgPoint: CGPoint) {
+    func createNode(at cgPoint: CGPoint) -> Node {
         let node = Node()
         self.nodes.append(node)
         self.add(relationship: FollowPencilRelationship(node: node, cgPoint: cgPoint))
+        return node
     }
     
-    func createNode(at x: Double, _ y: Double) {
-        self.createNode(at: CGPoint(x: x, y: y))
+    func createNode(at x: Double, _ y: Double) -> Node {
+        return self.createNode(at: CGPoint(x: x, y: y))
     }
     
     func deleteNode(_ node: Node) {

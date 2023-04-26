@@ -129,6 +129,66 @@ class FollowPencilRelationship: AffixRelationship {
     }
 }
 
+class LimitXRelationship: InputRelationship {
+    
+    let min: Double?
+    let max: Double?
+    
+    init(node: Node, min: Double?, max: Double?) {
+        self.min = min
+        self.max = max
+        super.init(node: node, priority: .fixed, temporary: false)
+    }
+    
+    override func apply() -> (Bool, Bool) {
+        var affectedX = false
+        
+        if let min = self.min {
+            if self.nodeOut.x < min {
+                affectedX = self.nodeOut.set(x: min, with: self)
+            }
+        }
+        
+        if let max = self.max {
+            if self.nodeOut.x > max {
+                affectedX = self.nodeOut.set(x: max, with: self)
+            }
+        }
+        
+        return (affectedX, false)
+    }
+}
+
+class LimitYRelationship: InputRelationship {
+    
+    let min: Double?
+    let max: Double?
+    
+    init(node: Node, min: Double?, max: Double?) {
+        self.min = min
+        self.max = max
+        super.init(node: node, priority: .fixed, temporary: false)
+    }
+    
+    override func apply() -> (Bool, Bool) {
+        var affectedY = false
+        
+        if let min = self.min {
+            if self.nodeOut.y < min {
+                affectedY = self.nodeOut.set(y: min, with: self)
+            }
+        }
+        
+        if let max = self.max {
+            if self.nodeOut.y > max {
+                affectedY = self.nodeOut.set(y: max, with: self)
+            }
+        }
+        
+        return (false, affectedY)
+    }
+}
+
 class EqualXXRelationship: NodeToNodeRelationship {
     
     init(nodeIn: Node, nodeOut: Node) {
