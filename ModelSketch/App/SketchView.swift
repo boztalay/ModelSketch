@@ -27,10 +27,10 @@ class NodeView: UIView {
     static let radius = 7.0
     static let touchTargetScale = 1.5
 
-    let node: Node
+    let node: ConstructionNode
     var highlightState: NodeViewHighlightState
     
-    init(node: Node) {
+    init(node: ConstructionNode) {
         self.node = node
         self.highlightState = .normal
         
@@ -81,7 +81,7 @@ class NodeView: UIView {
 class ModelView: UIView {
     
     let model: Model
-    var nodeViews: [Node : NodeView]
+    var nodeViews: [ConstructionNode : NodeView]
     var partialConnections: [NodeView : CGPoint]
     
     init(model: Model) {
@@ -116,10 +116,7 @@ class ModelView: UIView {
     
     func completeConnection(from nodeView: NodeView, at location: CGPoint) {
         if let endNodeView = self.getNodeView(at: location) {
-            self.model.connect(between: nodeView.node, endNodeView.node)
-            self.model.add(relationship: EqualXXRelationship(nodeIn: nodeView.node, nodeOut: endNodeView.node))
-            self.model.add(relationship: EqualXXRelationship(nodeIn: endNodeView.node, nodeOut: nodeView.node))
-            self.model.add(relationship: FollowPencilRelationship(node: nodeView.node, cgPoint: nodeView.node.cgPoint))
+            self.model.constructionGraph.connect(nodeA: nodeView.node, nodeB: endNodeView.node)
         }
         
         self.partialConnections.removeValue(forKey: nodeView)
@@ -144,7 +141,7 @@ class ModelView: UIView {
             self.drawLine(start: startPoint, end: endPoint, lineWidth: 3.0, color: .lightGray)
         }
         
-        for connection in self.model.connections {
+        for connection in self.model.constructionGraph.connections {
             let startPoint = connection.nodeA.cgPoint
             let endPoint = connection.nodeB.cgPoint
             self.drawLine(start: startPoint, end: endPoint, lineWidth: 3.0, color: .darkGray)
@@ -152,9 +149,7 @@ class ModelView: UIView {
     }
     
     func update() {
-        self.model.update()
-        
-        for node in self.model.nodes {
+        for node in self.model.constructionGraph.nodes {
             if self.nodeViews[node] == nil {
                 let nodeView = NodeView(node: node)
                 self.nodeViews[node] = nodeView
@@ -162,7 +157,7 @@ class ModelView: UIView {
         }
 
         for node in self.nodeViews.keys {
-            if !self.model.nodes.contains(node) {
+            if !self.model.constructionGraph.nodes.contains(node) {
                 let nodeView = self.nodeViews[node]!
                 nodeView.removeFromSuperview()
                 self.nodeViews.removeValue(forKey: node)
@@ -241,7 +236,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             if gestureRecognizer.isHardPress {
                 self.modelView.updateConnection(from: nodeView, at: location)
             } else if let translationDelta = gestureRecognizer.translationDelta {
-                self.modelView.model.add(relationship: FollowPencilRelationship(node: nodeView.node, cgPoint: nodeView.node.cgPoint.adding(translationDelta)))
+                nodeView.node.cgPoint = nodeView.node.cgPoint.adding(translationDelta)
                 self.modelView.update()
             }
         }
@@ -263,9 +258,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         
         switch gesture {
             case .create:
-                let node = self.model.createNode(at: location)
-                self.model.add(relationship: LimitXRelationship(node: node, min: 200.0, max: 500.0))
-                self.model.add(relationship: LimitYRelationship(node: node, min: 200.0, max: 500.0))
+                let node = self.model.constructionGraph.createNode()
+                node.cgPoint = location
             case .scratch:
                 self.handleScratchGesture(stroke)
             default:
@@ -281,7 +275,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         }
         
         for point in points {
-            var nodesToDelete = [Node]()
+            var nodesToDelete = [ConstructionNode]()
             for nodeView in self.modelView.nodeViews.values {
                 if nodeView.containsPoint(point) {
                     nodesToDelete.append(nodeView.node)
@@ -289,7 +283,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             }
             
             for node in nodesToDelete {
-                self.model.deleteNode(node)
+                self.model.constructionGraph.remove(node: node)
             }
         }
         

@@ -7,6 +7,8 @@
 
 import Foundation
 
+/*
+
 //
 // Base Relationship Classes
 //
@@ -27,18 +29,18 @@ class Relationship: Hashable {
     static var nextId: Int = 0
     
     static func getNextId() -> Int {
-        let id = Node.nextId
-        Node.nextId += 1
+        let id = Relationship.nextId
+        Relationship.nextId += 1
         return id
     }
 
     let id: Int
-    let nodeIn: Node?
-    let nodeOut: Node
+    let nodeIn: ConstructionNode?
+    let nodeOut: ConstructionNode
     let priority: RelationshipPriority
     let temporary: Bool
     
-    init(nodeIn: Node?, nodeOut: Node, priority: RelationshipPriority, temporary: Bool) {
+    init(nodeIn: ConstructionNode?, nodeOut: ConstructionNode, priority: RelationshipPriority, temporary: Bool) {
         self.id = Relationship.getNextId()
         self.nodeIn = nodeIn
         self.nodeOut = nodeOut
@@ -66,7 +68,7 @@ class Relationship: Hashable {
         fatalError("Need to implement apply")
     }
     
-    func contains(_ node: Node) -> Bool {
+    func contains(_ node: ConstructionNode) -> Bool {
         if let nodeIn = self.nodeIn {
             if node == nodeIn {
                 return true
@@ -87,14 +89,14 @@ class Relationship: Hashable {
 
 class InputRelationship: Relationship {
     
-    init(node: Node, priority: RelationshipPriority, temporary: Bool) {
+    init(node: ConstructionNode, priority: RelationshipPriority, temporary: Bool) {
         super.init(nodeIn: nil, nodeOut: node, priority: priority, temporary: temporary)
     }
 }
 
 class NodeToNodeRelationship: Relationship {
 
-    init(nodeIn: Node, nodeOut: Node, priority: RelationshipPriority, temporary: Bool) {
+    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode, priority: RelationshipPriority, temporary: Bool) {
         super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: priority, temporary: temporary)
     }
 }
@@ -107,12 +109,12 @@ class AffixRelationship: InputRelationship {
     
     let cgPoint: CGPoint
     
-    init(node: Node, cgPoint: CGPoint, priority: RelationshipPriority, temporary: Bool) {
+    init(node: ConstructionNode, cgPoint: CGPoint, priority: RelationshipPriority, temporary: Bool) {
         self.cgPoint = cgPoint
         super.init(node: node, priority: priority, temporary: temporary)
     }
     
-    convenience init(node: Node, cgPoint: CGPoint) {
+    convenience init(node: ConstructionNode, cgPoint: CGPoint) {
         self.init(node: node, cgPoint: cgPoint, priority: .fixed, temporary: false)
     }
 
@@ -124,7 +126,7 @@ class AffixRelationship: InputRelationship {
 
 class FollowPencilRelationship: AffixRelationship {
     
-    init(node: Node, cgPoint: CGPoint) {
+    init(node: ConstructionNode, cgPoint: CGPoint) {
         super.init(node: node, cgPoint: cgPoint, priority: .userInput, temporary: true)
     }
 }
@@ -134,7 +136,7 @@ class LimitXRelationship: InputRelationship {
     let min: Double?
     let max: Double?
     
-    init(node: Node, min: Double?, max: Double?) {
+    init(node: ConstructionNode, min: Double?, max: Double?) {
         self.min = min
         self.max = max
         super.init(node: node, priority: .fixed, temporary: false)
@@ -164,7 +166,7 @@ class LimitYRelationship: InputRelationship {
     let min: Double?
     let max: Double?
     
-    init(node: Node, min: Double?, max: Double?) {
+    init(node: ConstructionNode, min: Double?, max: Double?) {
         self.min = min
         self.max = max
         super.init(node: node, priority: .fixed, temporary: false)
@@ -191,7 +193,7 @@ class LimitYRelationship: InputRelationship {
 
 class EqualXXRelationship: NodeToNodeRelationship {
     
-    init(nodeIn: Node, nodeOut: Node) {
+    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode) {
         super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
         nodeIn.add(outgoingRelationshipX: self)
     }
@@ -203,7 +205,7 @@ class EqualXXRelationship: NodeToNodeRelationship {
 
 class EqualYYRelationship: NodeToNodeRelationship {
     
-    init(nodeIn: Node, nodeOut: Node) {
+    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode) {
         super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
         nodeIn.add(outgoingRelationshipY: self)
     }
@@ -215,7 +217,7 @@ class EqualYYRelationship: NodeToNodeRelationship {
 
 class EqualXYRelationship: NodeToNodeRelationship {
     
-    init(nodeIn: Node, nodeOut: Node) {
+    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode) {
         super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
         nodeIn.add(outgoingRelationshipX: self)
     }
@@ -227,7 +229,7 @@ class EqualXYRelationship: NodeToNodeRelationship {
 
 class EqualYXRelationship: NodeToNodeRelationship {
     
-    init(nodeIn: Node, nodeOut: Node) {
+    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode) {
         super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
         nodeIn.add(outgoingRelationshipY: self)
     }
@@ -237,3 +239,4 @@ class EqualYXRelationship: NodeToNodeRelationship {
     }
 }
 
+*/
