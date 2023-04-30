@@ -12,24 +12,29 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
  
     var model: Model
 
-    var pencilStrokeView: PencilStrokeView
-    var constructionView: ConstructionView
+    var pencilStrokeView: PencilStrokeView!
+    var metaView: MetaView!
+    var constructionView: ConstructionView!
     var nodePanGestureRecognizer: UIPanGestureRecognizer!
     
     init() {
         self.model = Model()
-        self.pencilStrokeView = PencilStrokeView()
-        self.constructionView = ConstructionView(graph: self.model.constructionGraph)
 
         super.init(frame: .zero)
 
         self.isMultipleTouchEnabled = true
         self.backgroundColor = .white
         
+        self.pencilStrokeView = PencilStrokeView()
         self.addSubview(self.pencilStrokeView)
         self.pencilStrokeView.strokeCompletion = self.strokeCompletion
         self.pencilStrokeView.pencilGestureRecognizer.delegate = self
         
+        self.metaView = MetaView(graph: self.model.metaGraph)
+        self.addSubview(self.metaView)
+        self.metaView.isUserInteractionEnabled = false
+        
+        self.constructionView = ConstructionView(graph: self.model.constructionGraph)
         self.addSubview(self.constructionView)
         self.constructionView.isUserInteractionEnabled = false
         self.constructionView.update()
@@ -124,6 +129,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
 
     override func layoutSubviews() {
         self.pencilStrokeView.frame = self.bounds
+        self.metaView.frame = self.bounds
         self.constructionView.frame = self.bounds
     }
     
