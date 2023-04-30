@@ -13,17 +13,17 @@ class MockNodeView: UIView {
     func set(position: CGPoint) {
         self.frame = CGRect(
             origin: CGPoint(
-                x: position.x - NodeView.radius,
-                y: position.y - NodeView.radius
+                x: position.x - ConstructionNodeView.radius,
+                y: position.y - ConstructionNodeView.radius
             ),
             size: CGSize(
-                width: NodeView.radius * 2.0,
-                height: NodeView.radius * 2.0
+                width: ConstructionNodeView.radius * 2.0,
+                height: ConstructionNodeView.radius * 2.0
             )
         )
         
-        self.layer.cornerRadius = NodeView.radius
-        self.layer.borderColor = NodeViewHighlightState.normal.color.cgColor
+        self.layer.cornerRadius = ConstructionNodeView.radius
+        self.layer.borderColor = ConstructionNodeView.HighlightState.normal.color.cgColor
         self.layer.borderWidth = 3.0
     }
 }

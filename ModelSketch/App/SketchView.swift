@@ -8,186 +8,18 @@
 import SwiftUI
 import UIKit
 
-enum NodeViewHighlightState {
-    case normal
-    case startOfConnection
-    
-    var color: UIColor {
-        switch self {
-            case .normal:
-                return UIColor.darkGray
-            case .startOfConnection:
-                return UIColor.systemBlue
-        }
-    }
-}
-
-class NodeView: UIView {
-    
-    static let radius = 7.0
-    static let touchTargetScale = 1.5
-
-    let node: ConstructionNode
-    var highlightState: NodeViewHighlightState
-    
-    init(node: ConstructionNode) {
-        self.node = node
-        self.highlightState = .normal
-        
-        super.init(frame: CGRect.zero)
-        
-        self.backgroundColor = .white
-        self.setHighlightState(self.highlightState)
-    }
-    
-    func setHighlightState(_ highlightState: NodeViewHighlightState) {
-        self.highlightState = highlightState
-        self.layer.borderColor = self.highlightState.color.cgColor
-    }
-    
-    func update(in superview: UIView) {
-        self.frame = CGRect(
-            origin: CGPoint(
-                x: self.node.x - NodeView.radius,
-                y: self.node.y - NodeView.radius
-            ),
-            size: CGSize(
-                width: NodeView.radius * 2.0,
-                height: NodeView.radius * 2.0
-            )
-        )
-        
-        self.layer.cornerRadius = NodeView.radius
-        self.layer.borderColor = self.highlightState.color.cgColor
-        self.layer.borderWidth = 3.0
-        
-        if self.superview != superview {
-            self.removeFromSuperview()
-            superview.addSubview(self)
-        }
-        
-        self.superview!.setNeedsDisplay()
-    }
-    
-    func containsPoint(_ point: CGPoint) -> Bool {
-        return (point.distance(to: self.node.cgPoint) < (NodeView.radius * NodeView.touchTargetScale))
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
-class ModelView: UIView {
-    
-    let model: Model
-    var nodeViews: [ConstructionNode : NodeView]
-    var partialConnections: [NodeView : CGPoint]
-    
-    init(model: Model) {
-        self.model = model
-        self.nodeViews = [:]
-        self.partialConnections = [:]
-
-        super.init(frame: CGRect.zero)
-        
-        self.backgroundColor = .clear
-    }
-    
-    func getNodeView(at point: CGPoint) -> NodeView? {
-        for nodeView in self.nodeViews.values {
-            if nodeView.containsPoint(point) {
-                return nodeView
-            }
-        }
-        
-        return nil
-    }
-    
-    func startConnection(from nodeView: NodeView, at location: CGPoint) {
-        self.partialConnections[nodeView] = location
-        self.setNeedsDisplay()
-    }
-    
-    func updateConnection(from nodeView: NodeView, at location: CGPoint) {
-        self.partialConnections[nodeView] = location
-        self.setNeedsDisplay()
-    }
-    
-    func completeConnection(from nodeView: NodeView, at location: CGPoint) {
-        if let endNodeView = self.getNodeView(at: location) {
-            self.model.constructionGraph.connect(nodeA: nodeView.node, nodeB: endNodeView.node)
-        }
-        
-        self.partialConnections.removeValue(forKey: nodeView)
-        self.update()
-    }
-    
-    func drawLine(start: CGPoint, end: CGPoint, lineWidth: CGFloat, color: UIColor) {
-        let path = UIBezierPath()
-        path.move(to: start)
-        path.addLine(to: end)
-        
-        color.set()
-        path.lineWidth = lineWidth
-        path.stroke()
-    }
-    
-    override func draw(_ rect: CGRect) {
-        super.draw(self.bounds)
-        
-        for (nodeView, endPoint) in self.partialConnections {
-            let startPoint = nodeView.node.cgPoint
-            self.drawLine(start: startPoint, end: endPoint, lineWidth: 3.0, color: .lightGray)
-        }
-        
-        for connection in self.model.constructionGraph.connections {
-            let startPoint = connection.nodeA.cgPoint
-            let endPoint = connection.nodeB.cgPoint
-            self.drawLine(start: startPoint, end: endPoint, lineWidth: 3.0, color: .darkGray)
-        }
-    }
-    
-    func update() {
-        for node in self.model.constructionGraph.nodes {
-            if self.nodeViews[node] == nil {
-                let nodeView = NodeView(node: node)
-                self.nodeViews[node] = nodeView
-            }
-        }
-
-        for node in self.nodeViews.keys {
-            if !self.model.constructionGraph.nodes.contains(node) {
-                let nodeView = self.nodeViews[node]!
-                nodeView.removeFromSuperview()
-                self.nodeViews.removeValue(forKey: node)
-            }
-        }
-        
-        for nodeView in self.nodeViews.values {
-            nodeView.update(in: self)
-        }
-        
-        self.setNeedsDisplay()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
 class SketchView: UIView, UIGestureRecognizerDelegate {
  
     var model: Model
 
     var pencilStrokeView: PencilStrokeView
-    var modelView: ModelView
+    var constructionView: ConstructionView
     var nodePanGestureRecognizer: UIPanGestureRecognizer!
     
     init() {
         self.model = Model()
         self.pencilStrokeView = PencilStrokeView()
-        self.modelView = ModelView(model: self.model)
+        self.constructionView = ConstructionView(graph: self.model.constructionGraph)
 
         super.init(frame: .zero)
 
@@ -198,11 +30,11 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.pencilStrokeView.strokeCompletion = self.strokeCompletion
         self.pencilStrokeView.pencilGestureRecognizer.delegate = self
         
-        self.addSubview(self.modelView)
-        self.modelView.isUserInteractionEnabled = false
-        self.modelView.update()
+        self.addSubview(self.constructionView)
+        self.constructionView.isUserInteractionEnabled = false
+        self.constructionView.update()
 
-        self.nodePanGestureRecognizer = NodePanGestureRecognizer(modelView: self.modelView, target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
+        self.nodePanGestureRecognizer = NodePanGestureRecognizer(modelView: self.constructionView, target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
         self.nodePanGestureRecognizer.delegate = self
         self.addGestureRecognizer(self.nodePanGestureRecognizer)
     }
@@ -224,26 +56,26 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             return
         }
 
-        let location = gestureRecognizer.location(in: self.modelView)
+        let location = gestureRecognizer.location(in: self.constructionView)
 
         if gestureRecognizer.state == .began {
             if gestureRecognizer.isHardPress {
-                self.modelView.startConnection(from: nodeView, at: location)
+                self.constructionView.startConnection(from: nodeView, at: location)
             }
         }
         
         if gestureRecognizer.state == .changed {
             if gestureRecognizer.isHardPress {
-                self.modelView.updateConnection(from: nodeView, at: location)
+                self.constructionView.updateConnection(from: nodeView, at: location)
             } else if let translationDelta = gestureRecognizer.translationDelta {
                 nodeView.node.cgPoint = nodeView.node.cgPoint.adding(translationDelta)
-                self.modelView.update()
+                self.constructionView.update()
             }
         }
         
         if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
             if gestureRecognizer.isHardPress {
-                self.modelView.completeConnection(from: nodeView, at: location)
+                self.constructionView.completeConnection(from: nodeView, at: location)
             }
         }
     }
@@ -266,17 +98,17 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
                 return
         }
         
-        self.modelView.update()
+        self.constructionView.update()
     }
     
     func handleScratchGesture(_ stroke: PencilStroke) {
-        guard let points = stroke.walkPath(stride: NodeView.radius) else {
+        guard let points = stroke.walkPath(stride: ConstructionNodeView.radius) else {
             return
         }
         
         for point in points {
             var nodesToDelete = [ConstructionNode]()
-            for nodeView in self.modelView.nodeViews.values {
+            for nodeView in self.constructionView.nodeViews.values {
                 if nodeView.containsPoint(point) {
                     nodesToDelete.append(nodeView.node)
                 }
@@ -287,12 +119,12 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             }
         }
         
-        self.modelView.update()
+        self.constructionView.update()
     }
 
     override func layoutSubviews() {
         self.pencilStrokeView.frame = self.bounds
-        self.modelView.frame = self.bounds
+        self.constructionView.frame = self.bounds
     }
     
     required init?(coder: NSCoder) {

@@ -11,15 +11,15 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
     
     static let hardPressForceThreshold = 1.5
     
-    let modelView: ModelView
-    var hysteresis: CGFloat = NodeView.radius
+    let modelView: ConstructionView
+    var hysteresis: CGFloat = ConstructionNodeView.radius
 
-    var nodeView: NodeView?
+    var nodeView: ConstructionNodeView?
     var isHardPress: Bool
     var lastLocation: CGPoint?
     var translationDelta: CGPoint?
 
-    init(modelView: ModelView, target: Any?, action: Selector?) {
+    init(modelView: ConstructionView, target: Any?, action: Selector?) {
         self.modelView = modelView
         self.isHardPress = false
 

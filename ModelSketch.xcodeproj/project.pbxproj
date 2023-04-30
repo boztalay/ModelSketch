@@ -41,6 +41,7 @@
 		FB7EC65F29F99C87004A76C5 /* Relationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB7EC65E29F99C87004A76C5 /* Relationship.swift */; };
 		FB7EC66129FB5037004A76C5 /* ConstructionInk.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB7EC66029FB5037004A76C5 /* ConstructionInk.swift */; };
 		FB7EC66329FB5104004A76C5 /* MetaInk.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB7EC66229FB5104004A76C5 /* MetaInk.swift */; };
+		FB7EC66529FE3613004A76C5 /* ConstructionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB7EC66429FE3613004A76C5 /* ConstructionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +80,7 @@
 		FB7EC65E29F99C87004A76C5 /* Relationship.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Relationship.swift; sourceTree = "<group>"; };
 		FB7EC66029FB5037004A76C5 /* ConstructionInk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructionInk.swift; sourceTree = "<group>"; };
 		FB7EC66229FB5104004A76C5 /* MetaInk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaInk.swift; sourceTree = "<group>"; };
+		FB7EC66429FE3613004A76C5 /* ConstructionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -173,6 +175,7 @@
 				FB077B5129EF638F004F0857 /* GestureTrainerView.swift */,
 				FB077B5329EF7349004F0857 /* GestureView.swift */,
 				FB077B4229E472CA004F0857 /* SketchView.swift */,
+				FB7EC66429FE3613004A76C5 /* ConstructionView.swift */,
 				FB077B4A29E8BECD004F0857 /* PencilStrokeView.swift */,
 				FB077B4829E722ED004F0857 /* PencilGestureRecognizer.swift */,
 				FB077B7D29F0A05F004F0857 /* NodePanGestureRecognizer.swift */,
@@ -272,6 +275,7 @@
 				FB077B5B29F05229004F0857 /* CGImage+CVPixelBuffer.swift in Sources */,
 				FB077B7C29F0596C004F0857 /* Math.swift in Sources */,
 				FB077B5229EF638F004F0857 /* GestureTrainerView.swift in Sources */,
+				FB7EC66529FE3613004A76C5 /* ConstructionView.swift in Sources */,
 				FB077B5929F051CF004F0857 /* UIImage+CVPixelBuffer.swift in Sources */,
 				FB077B4929E722ED004F0857 /* PencilGestureRecognizer.swift in Sources */,
 				FB077B7A29F0596C004F0857 /* CVPixelBuffer+Rotate.swift in Sources */,

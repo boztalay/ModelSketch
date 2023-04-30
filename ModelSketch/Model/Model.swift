@@ -10,8 +10,10 @@ import Foundation
 class Model {
     
     let constructionGraph: ConstructionGraph
+    let metaGraph: MetaGraph
     
     init() {
         self.constructionGraph = ConstructionGraph()
+        self.metaGraph = MetaGraph(constructionGraph: self.constructionGraph)
     }
 }
