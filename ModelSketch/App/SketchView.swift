@@ -62,13 +62,14 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.constructionView = ConstructionView(graph: self.model.constructionGraph)
         self.addSubview(self.constructionView)
         self.constructionView.isUserInteractionEnabled = false
-        self.constructionView.update()
 
         self.nodePanGestureRecognizer = NodePanGestureRecognizer(target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
         self.nodePanGestureRecognizer.delegate = self
         self.addGestureRecognizer(self.nodePanGestureRecognizer)
         
         self.setDrawingMode(drawingMode: .construction)
+        self.metaView.update()
+        self.constructionView.update()
     }
     
     func setDrawingMode(drawingMode: DrawingMode) {
@@ -101,6 +102,9 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             case .meta:
                 self.metaView.handleNodePanGestureUpdate(gestureRecognizer)
         }
+        
+        self.metaView.update()
+        self.constructionView.update()
     }
     
     func strokeCompletion(_ stroke: PencilStroke) {
@@ -119,6 +123,9 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             default:
                 return
         }
+        
+        self.metaView.update()
+        self.constructionView.update()
     }
     
     func handleCreateGesture(at location: CGPoint) {

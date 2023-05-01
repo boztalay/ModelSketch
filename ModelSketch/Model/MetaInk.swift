@@ -10,7 +10,7 @@ import Foundation
 // circle gesture to open a menu to pick a relationship type
 // could have the menu open with a scratch pad next to it to accept a gesture as shorthand
 
-class MetaNode {
+class MetaNode: Hashable {
 
     static var nextId: Int = 0
     
@@ -73,11 +73,22 @@ class MetaDistanceConstraintNode: MetaConstraintNode {
 
 class MetaGraph {
     
-    let nodes: [MetaNode]
+    var nodes: [MetaNode]
     let constructionGraph: ConstructionGraph
     
     init(constructionGraph: ConstructionGraph) {
         self.nodes = []
         self.constructionGraph = constructionGraph
+        
+        let nodeA = self.constructionGraph.createNode()
+        nodeA.x = 200.0
+        nodeA.y = 200.0
+        
+        let nodeB = self.constructionGraph.createNode()
+        nodeB.x = 300.0
+        nodeB.y = 300.0
+        
+        let distanceConstraint = MetaDistanceConstraintNode(distance: 100.0, nodeA: nodeA, nodeB: nodeB)
+        self.nodes.append(distanceConstraint)
     }
 }
