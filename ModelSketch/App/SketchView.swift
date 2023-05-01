@@ -57,32 +57,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     }
 
     @objc func nodePanGestureRecognizerUpdate(_ gestureRecognizer : NodePanGestureRecognizer) {
-        guard let nodeView = gestureRecognizer.nodeView else {
-            return
-        }
-
-        let location = gestureRecognizer.location(in: self.constructionView)
-
-        if gestureRecognizer.state == .began {
-            if gestureRecognizer.isHardPress {
-                self.constructionView.startConnection(from: nodeView, at: location)
-            }
-        }
-        
-        if gestureRecognizer.state == .changed {
-            if gestureRecognizer.isHardPress {
-                self.constructionView.updateConnection(from: nodeView, at: location)
-            } else if let translationDelta = gestureRecognizer.translationDelta {
-                nodeView.node.cgPoint = nodeView.node.cgPoint.adding(translationDelta)
-                self.constructionView.update()
-            }
-        }
-        
-        if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
-            if gestureRecognizer.isHardPress {
-                self.constructionView.completeConnection(from: nodeView, at: location)
-            }
-        }
+        // TODO: Route these gestures to the appropriate view based on drawing mode
+        self.constructionView.handleNodePanGestureUpdate(gestureRecognizer)
     }
     
     func strokeCompletion(_ stroke: PencilStroke) {
@@ -95,15 +71,17 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         
         switch gesture {
             case .create:
-                let node = self.model.constructionGraph.createNode()
-                node.cgPoint = location
+                self.handleCreateGesture(at: location)
             case .scratch:
                 self.handleScratchGesture(stroke)
             default:
                 return
         }
-        
-        self.constructionView.update()
+    }
+    
+    func handleCreateGesture(at location: CGPoint) {
+        // TODO: Route these gestures to the appropriate view based on drawing mode
+        self.constructionView.handleCreateGesture(at: location)
     }
     
     func handleScratchGesture(_ stroke: PencilStroke) {
@@ -111,20 +89,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             return
         }
         
-        for point in points {
-            var nodesToDelete = [ConstructionNode]()
-            for nodeView in self.constructionView.nodeViews.values {
-                if nodeView.containsPoint(point) {
-                    nodesToDelete.append(nodeView.node)
-                }
-            }
-            
-            for node in nodesToDelete {
-                self.model.constructionGraph.remove(node: node)
-            }
-        }
-        
-        self.constructionView.update()
+        // TODO: Route these gestures to the appropriate view based on drawing mode
+        self.constructionView.handleScratchGesture(along: points)
     }
 
     override func layoutSubviews() {

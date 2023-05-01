@@ -11,7 +11,7 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
     
     static let hardPressForceThreshold = 1.5
     
-    let modelView: ConstructionView
+    let constructionView: ConstructionView
     var hysteresis: CGFloat = ConstructionNodeView.radius
 
     var nodeView: ConstructionNodeView?
@@ -20,7 +20,7 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
     var translationDelta: CGPoint?
 
     init(modelView: ConstructionView, target: Any?, action: Selector?) {
-        self.modelView = modelView
+        self.constructionView = modelView
         self.isHardPress = false
 
         super.init(target: target, action: action)
@@ -38,7 +38,7 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
         self.translationDelta = nil
     
         let location = self.location(in: self.view)
-        guard let nodeView = self.modelView.getNodeView(at: location) else {
+        guard let nodeView = self.constructionView.getNodeView(at: location) else {
             self.state = .failed
             return
         }

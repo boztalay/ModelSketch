@@ -93,9 +93,9 @@ class ConstructionView: UIView {
         self.backgroundColor = .clear
     }
     
-    func getNodeView(at point: CGPoint) -> ConstructionNodeView? {
+    func getNodeView(at location: CGPoint) -> ConstructionNodeView? {
         for nodeView in self.nodeViews.values {
-            if nodeView.containsPoint(point) {
+            if nodeView.containsPoint(location) {
                 return nodeView
             }
         }
@@ -103,23 +103,90 @@ class ConstructionView: UIView {
         return nil
     }
     
-    func startConnection(from nodeView: ConstructionNodeView, at location: CGPoint) {
-        self.partialConnections[nodeView] = location
-        self.setNeedsDisplay()
-    }
-    
-    func updateConnection(from nodeView: ConstructionNodeView, at location: CGPoint) {
-        self.partialConnections[nodeView] = location
-        self.setNeedsDisplay()
-    }
-    
-    func completeConnection(from nodeView: ConstructionNodeView, at location: CGPoint) {
-        if let endNodeView = self.getNodeView(at: location) {
-            self.graph.connect(nodeA: nodeView.node, nodeB: endNodeView.node)
+    func handleNodePanGestureUpdate(_ gestureRecognizer: NodePanGestureRecognizer) {
+        guard let nodeView = gestureRecognizer.nodeView else {
+            return
         }
         
-        self.partialConnections.removeValue(forKey: nodeView)
+        let location = gestureRecognizer.location(in: self)
+
+        if gestureRecognizer.state == .began {
+            guard let nodeView = self.getNodeView(at: location) else {
+                return
+            }
+            
+            if gestureRecognizer.isHardPress {
+                self.partialConnections[nodeView] = location
+                self.setNeedsDisplay()
+            }
+        }
+        
+        if gestureRecognizer.state == .changed {
+            if gestureRecognizer.isHardPress {
+                self.partialConnections[nodeView] = location
+                self.setNeedsDisplay()
+            } else if let translationDelta = gestureRecognizer.translationDelta {
+                nodeView.node.cgPoint = nodeView.node.cgPoint.adding(translationDelta)
+                self.update()
+            }
+        }
+        
+        if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
+            if gestureRecognizer.isHardPress {
+                if let endNodeView = self.getNodeView(at: location) {
+                    self.graph.connect(nodeA: nodeView.node, nodeB: endNodeView.node)
+                }
+                
+                self.partialConnections.removeValue(forKey: nodeView)
+                self.update()
+            }
+        }
+    }
+    
+    func handleCreateGesture(at location: CGPoint) {
+        let node = self.graph.createNode()
+        node.cgPoint = location
         self.update()
+    }
+    
+    func handleScratchGesture(along points: [CGPoint]) {
+        for point in points {
+            var nodesToDelete = [ConstructionNode]()
+            for nodeView in self.nodeViews.values {
+                if nodeView.containsPoint(point) {
+                    nodesToDelete.append(nodeView.node)
+                }
+            }
+            
+            for node in nodesToDelete {
+                self.graph.remove(node: node)
+            }
+        }
+
+        self.update()
+    }
+
+    func update() {
+        for node in self.graph.nodes {
+            if self.nodeViews[node] == nil {
+                let nodeView = ConstructionNodeView(node: node)
+                self.nodeViews[node] = nodeView
+            }
+        }
+
+        for node in self.nodeViews.keys {
+            if !self.graph.nodes.contains(node) {
+                let nodeView = self.nodeViews[node]!
+                nodeView.removeFromSuperview()
+                self.nodeViews.removeValue(forKey: node)
+            }
+        }
+        
+        for nodeView in self.nodeViews.values {
+            nodeView.update(in: self)
+        }
+        
+        self.setNeedsDisplay()
     }
     
     func drawLine(start: CGPoint, end: CGPoint, lineWidth: CGFloat, color: UIColor) {
@@ -145,29 +212,6 @@ class ConstructionView: UIView {
             let endPoint = connection.nodeB.cgPoint
             self.drawLine(start: startPoint, end: endPoint, lineWidth: 3.0, color: .darkGray)
         }
-    }
-    
-    func update() {
-        for node in self.graph.nodes {
-            if self.nodeViews[node] == nil {
-                let nodeView = ConstructionNodeView(node: node)
-                self.nodeViews[node] = nodeView
-            }
-        }
-
-        for node in self.nodeViews.keys {
-            if !self.graph.nodes.contains(node) {
-                let nodeView = self.nodeViews[node]!
-                nodeView.removeFromSuperview()
-                self.nodeViews.removeValue(forKey: node)
-            }
-        }
-        
-        for nodeView in self.nodeViews.values {
-            nodeView.update(in: self)
-        }
-        
-        self.setNeedsDisplay()
     }
     
     required init?(coder: NSCoder) {
