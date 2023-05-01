@@ -8,17 +8,42 @@
 import SwiftUI
 import UIKit
 
+protocol Sketchable {
+    func handleNodePanGestureUpdate(_ gestureRecognizer: NodePanGestureRecognizer)
+    func handleCreateGesture(at location: CGPoint)
+    func handleScratchGesture(along points: [CGPoint])
+}
+
 class SketchView: UIView, UIGestureRecognizerDelegate {
+    
+    enum DrawingMode: CaseIterable, Identifiable {
+        var id: Self { self }
+
+        case construction
+        case meta
+        
+        var friendlyName: String {
+            switch (self) {
+                case .construction:
+                    return "Construction"
+                case .meta:
+                    return "Meta"
+            }
+        }
+    }
  
-    var model: Model
+    let model: Model
 
     var pencilStrokeView: PencilStrokeView!
     var metaView: MetaView!
     var constructionView: ConstructionView!
-    var nodePanGestureRecognizer: UIPanGestureRecognizer!
+    var nodePanGestureRecognizer: NodePanGestureRecognizer!
+    
+    var drawingMode: DrawingMode
     
     init() {
         self.model = Model()
+        self.drawingMode = .construction
 
         super.init(frame: .zero)
 
@@ -39,9 +64,22 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.constructionView.isUserInteractionEnabled = false
         self.constructionView.update()
 
-        self.nodePanGestureRecognizer = NodePanGestureRecognizer(modelView: self.constructionView, target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
+        self.nodePanGestureRecognizer = NodePanGestureRecognizer(target: self, action: #selector(self.nodePanGestureRecognizerUpdate))
         self.nodePanGestureRecognizer.delegate = self
         self.addGestureRecognizer(self.nodePanGestureRecognizer)
+        
+        self.setDrawingMode(drawingMode: .construction)
+    }
+    
+    func setDrawingMode(drawingMode: DrawingMode) {
+        self.drawingMode = drawingMode
+
+        switch self.drawingMode {
+            case .construction:
+                self.nodePanGestureRecognizer.nodeDelegate = self.constructionView
+            case .meta:
+                self.nodePanGestureRecognizer.nodeDelegate = self.metaView
+        }
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -57,8 +95,12 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     }
 
     @objc func nodePanGestureRecognizerUpdate(_ gestureRecognizer : NodePanGestureRecognizer) {
-        // TODO: Route these gestures to the appropriate view based on drawing mode
-        self.constructionView.handleNodePanGestureUpdate(gestureRecognizer)
+        switch self.drawingMode {
+            case .construction:
+                self.constructionView.handleNodePanGestureUpdate(gestureRecognizer)
+            case .meta:
+                self.metaView.handleNodePanGestureUpdate(gestureRecognizer)
+        }
     }
     
     func strokeCompletion(_ stroke: PencilStroke) {
@@ -80,17 +122,25 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     }
     
     func handleCreateGesture(at location: CGPoint) {
-        // TODO: Route these gestures to the appropriate view based on drawing mode
-        self.constructionView.handleCreateGesture(at: location)
+        switch self.drawingMode {
+            case .construction:
+                self.constructionView.handleCreateGesture(at: location)
+            case .meta:
+                self.metaView.handleCreateGesture(at: location)
+        }
     }
     
     func handleScratchGesture(_ stroke: PencilStroke) {
         guard let points = stroke.walkPath(stride: ConstructionNodeView.radius) else {
             return
         }
-        
-        // TODO: Route these gestures to the appropriate view based on drawing mode
-        self.constructionView.handleScratchGesture(along: points)
+
+        switch self.drawingMode {
+            case .construction:
+                self.constructionView.handleScratchGesture(along: points)
+            case .meta:
+                self.metaView.handleScratchGesture(along: points)
+        }
     }
 
     override func layoutSubviews() {
@@ -106,12 +156,14 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
 
 struct RepresentedSketchView: UIViewRepresentable {
     typealias UIViewType = SketchView
+    
+    @Binding var drawingMode: SketchView.DrawingMode
 
     func makeUIView(context: Context) -> SketchView {
         return SketchView()
     }
-    
-    func updateUIView(_ uiView: SketchView, context: Context) {
 
+    func updateUIView(_ uiView: SketchView, context: Context) {
+        uiView.setDrawingMode(drawingMode: self.drawingMode)
     }
 }

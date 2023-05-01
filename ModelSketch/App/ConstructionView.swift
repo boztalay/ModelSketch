@@ -77,7 +77,7 @@ class ConstructionNodeView: UIView {
     }
 }
 
-class ConstructionView: UIView {
+class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     
     let graph: ConstructionGraph
     var nodeViews: [ConstructionNode : ConstructionNodeView]
@@ -93,7 +93,7 @@ class ConstructionView: UIView {
         self.backgroundColor = .clear
     }
     
-    func getNodeView(at location: CGPoint) -> ConstructionNodeView? {
+    func getNodeView(at location: CGPoint) -> UIView? {
         for nodeView in self.nodeViews.values {
             if nodeView.containsPoint(location) {
                 return nodeView
@@ -103,18 +103,26 @@ class ConstructionView: UIView {
         return nil
     }
     
+    func hardPressStatusChanged(_ gestureRecognizer: NodePanGestureRecognizer) {
+        guard let nodeView = gestureRecognizer.nodeView as? ConstructionNodeView else {
+            return
+        }
+        
+        if gestureRecognizer.isHardPress {
+            nodeView.setHighlightState(.startOfConnection)
+        } else {
+            nodeView.setHighlightState(.normal)
+        }
+    }
+    
     func handleNodePanGestureUpdate(_ gestureRecognizer: NodePanGestureRecognizer) {
-        guard let nodeView = gestureRecognizer.nodeView else {
+        guard let nodeView = gestureRecognizer.nodeView as? ConstructionNodeView else {
             return
         }
         
         let location = gestureRecognizer.location(in: self)
 
         if gestureRecognizer.state == .began {
-            guard let nodeView = self.getNodeView(at: location) else {
-                return
-            }
-            
             if gestureRecognizer.isHardPress {
                 self.partialConnections[nodeView] = location
                 self.setNeedsDisplay()
@@ -133,9 +141,11 @@ class ConstructionView: UIView {
         
         if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
             if gestureRecognizer.isHardPress {
-                if let endNodeView = self.getNodeView(at: location) {
+                if let endNodeView = self.getNodeView(at: location) as? ConstructionNodeView {
                     self.graph.connect(nodeA: nodeView.node, nodeB: endNodeView.node)
                 }
+                
+                nodeView.setHighlightState(.normal)
                 
                 self.partialConnections.removeValue(forKey: nodeView)
                 self.update()

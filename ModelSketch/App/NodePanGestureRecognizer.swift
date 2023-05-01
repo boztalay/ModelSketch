@@ -7,20 +7,24 @@
 
 import UIKit
 
+protocol NodePanGestureRecognizerDelegate {
+    func getNodeView(at location: CGPoint) -> UIView?
+    func hardPressStatusChanged(_ gestureRecognizer: NodePanGestureRecognizer)
+}
+
 class NodePanGestureRecognizer: UIPanGestureRecognizer {
     
     static let hardPressForceThreshold = 1.5
     
-    let constructionView: ConstructionView
+    var nodeDelegate: NodePanGestureRecognizerDelegate?
     var hysteresis: CGFloat = ConstructionNodeView.radius
 
-    var nodeView: ConstructionNodeView?
+    var nodeView: UIView?
     var isHardPress: Bool
     var lastLocation: CGPoint?
     var translationDelta: CGPoint?
 
-    init(modelView: ConstructionView, target: Any?, action: Selector?) {
-        self.constructionView = modelView
+    override init(target: Any?, action: Selector?) {
         self.isHardPress = false
 
         super.init(target: target, action: action)
@@ -31,6 +35,9 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesBegan(touches, with: event)
+        guard let nodeDelegate = self.nodeDelegate else {
+            return
+        }
 
         self.nodeView = nil
         self.isHardPress = false
@@ -38,7 +45,7 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
         self.translationDelta = nil
     
         let location = self.location(in: self.view)
-        guard let nodeView = self.constructionView.getNodeView(at: location) else {
+        guard let nodeView = nodeDelegate.getNodeView(at: location) else {
             self.state = .failed
             return
         }
@@ -48,8 +55,7 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesMoved(touches, with: event)
-        
-        guard let nodeView = self.nodeView else {
+        guard let nodeDelegate = self.nodeDelegate else {
             return
         }
         
@@ -64,12 +70,8 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
             let force = touches.first!.perpendicularForce
             self.isHardPress = (force > NodePanGestureRecognizer.hardPressForceThreshold)
             
-            if self.isHardPress {
-                nodeView.setHighlightState(.startOfConnection)
-            } else {
-                nodeView.setHighlightState(.normal)
-            }
-            
+            nodeDelegate.hardPressStatusChanged(self)
+
             let distanceMoved = self.translation(in: self.view).distance(to: .zero)
             if distanceMoved > self.hysteresis {
                 self.state = .began
@@ -81,11 +83,5 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesEnded(touches, with: event)
-        
-        guard let nodeView = self.nodeView else {
-            return
-        }
-        
-        nodeView.setHighlightState(.normal)
     }
 }

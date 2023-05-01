@@ -16,6 +16,7 @@ struct ContentView: View {
     
     @State private var selection: Screen? = .sketch
     @State private var columnVisibility = NavigationSplitViewVisibility.detailOnly
+    @State private var drawingMode: SketchView.DrawingMode = .construction
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -27,7 +28,20 @@ struct ContentView: View {
         } detail: {
             switch self.selection {
                 case .sketch:
-                    RepresentedSketchView().ignoresSafeArea().navigationTitle("")
+                    ZStack {
+                        RepresentedSketchView(drawingMode: $drawingMode).ignoresSafeArea().navigationTitle("")
+                        HStack {
+                            Spacer()
+                            VStack {
+                                Spacer()
+                                Picker("Drawing Mode", selection: $drawingMode) {
+                                    ForEach(SketchView.DrawingMode.allCases) { drawingMode in
+                                        Text(drawingMode.friendlyName)
+                                    }
+                                }.pickerStyle(.menu)
+                            }
+                        }
+                    }
                 case .gestures:
                     GestureTrainerView().navigationTitle("Gesture Trainer")
                 case .none:
