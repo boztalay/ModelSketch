@@ -10,6 +10,10 @@ import Foundation
 // circle gesture to open a menu to pick a relationship type
 // could have the menu open with a scratch pad next to it to accept a gesture as shorthand
 
+// define quanitites in meta ink, a MetaQuanitityNode
+// then define constraints between those quantites
+// and map those constraints to Relationships in the construction graph
+
 class MetaNode: Hashable {
 
     static var nextId: Int = 0
@@ -49,7 +53,18 @@ class MetaNode: Hashable {
     }
 }
 
-class MetaConstraintNode: MetaNode {
+class MetaQuantityNode: MetaNode {
+    
+    func getQuantity() -> Double {
+        fatalError("getQuantity must be implemented")
+    }
+    
+    func setQuantity(quantity: Double) {
+        fatalError("setQuantity must be implemented")
+    }
+}
+
+class MetaDistanceQuantityNode: MetaQuantityNode {
     
     let nodeA: ConstructionNode
     let nodeB: ConstructionNode
@@ -59,15 +74,13 @@ class MetaConstraintNode: MetaNode {
         self.nodeB = nodeB
         super.init()
     }
-}
-
-class MetaDistanceConstraintNode: MetaConstraintNode {
     
-    let distance: Double
+    override func getQuantity() -> Double {
+        return self.nodeA.cgPoint.distance(to: self.nodeB.cgPoint)
+    }
     
-    init(distance: Double, nodeA: ConstructionNode, nodeB: ConstructionNode) {
-        self.distance = distance
-        super.init(nodeA: nodeA, nodeB: nodeB)
+    override func setQuantity(quantity: Double) {
+        // TODO: Nothing?
     }
 }
 
@@ -88,7 +101,7 @@ class MetaGraph {
         nodeB.x = 300.0
         nodeB.y = 300.0
         
-        let distanceConstraint = MetaDistanceConstraintNode(distance: 100.0, nodeA: nodeA, nodeB: nodeB)
-        self.nodes.append(distanceConstraint)
+        let distanceQuantity = MetaDistanceQuantityNode(nodeA: nodeA, nodeB: nodeB)
+        self.nodes.append(distanceQuantity)
     }
 }

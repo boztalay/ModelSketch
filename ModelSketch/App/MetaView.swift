@@ -10,8 +10,8 @@ import UIKit
 class MetaNodeView: UIView {
     
     static func view(for node: MetaNode) -> MetaNodeView? {
-        if let distanceConstraintNode = node as? MetaDistanceConstraintNode {
-            return MetaDistanceConstraintNodeView(node: distanceConstraintNode)
+        if let distanceQuantityNode = node as? MetaDistanceQuantityNode {
+            return MetaDistanceQuantityNodeView(node: distanceQuantityNode)
         }
         
         return nil
@@ -36,27 +36,45 @@ class MetaNodeView: UIView {
     }
 }
 
-class MetaDistanceConstraintNodeView: MetaNodeView {
+class MetaDistanceQuantityNodeView: MetaNodeView {
     
-    var constraintNode: MetaDistanceConstraintNode {
-        return self.node as! MetaDistanceConstraintNode
+    let label: UILabel
+    
+    var quantityNode: MetaDistanceQuantityNode {
+        return self.node as! MetaDistanceQuantityNode
     }
     
-    init(node: MetaDistanceConstraintNode) {
+    init(node: MetaDistanceQuantityNode) {
+        self.label = UILabel(frame: .zero)
+
         super.init(node: node)
+
         self.backgroundColor = .clear
+        
+        self.addSubview(self.label)
+        self.label.font = UIFont.systemFont(ofSize: 10.0)
+        self.label.textColor = .systemYellow
+        self.label.backgroundColor = .white
+        self.label.textAlignment = .center
     }
     
     override func update(in superview: UIView) {
         super.update(in: superview)
         
-        let minX = min(self.constraintNode.nodeA.x, self.constraintNode.nodeB.x)
-        let minY = min(self.constraintNode.nodeA.y, self.constraintNode.nodeB.y)
-        let maxX = max(self.constraintNode.nodeA.x, self.constraintNode.nodeB.x)
-        let maxY = max(self.constraintNode.nodeA.y, self.constraintNode.nodeB.y)
+        let minX = min(self.quantityNode.nodeA.x, self.quantityNode.nodeB.x)
+        let minY = min(self.quantityNode.nodeA.y, self.quantityNode.nodeB.y)
+        let maxX = max(self.quantityNode.nodeA.x, self.quantityNode.nodeB.x)
+        let maxY = max(self.quantityNode.nodeA.y, self.quantityNode.nodeB.y)
 
-        self.frame = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
-        self.constraintNode.cgPoint = self.center
+        self.frame = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY).insetBy(dx: -2.0, dy: -2.0)
+        self.quantityNode.cgPoint = self.center
+        
+        self.label.text = "\(Int(round(self.quantityNode.getQuantity())))"
+        self.label.sizeToFit()
+        self.label.frame = self.label.frame.insetBy(dx: -2.0, dy: -1.0)
+        self.label.layer.cornerRadius = self.label.frame.height / 3.0
+        self.label.layer.masksToBounds = true
+        self.label.center = self.center.subtracting(self.frame.origin)
 
         self.setNeedsDisplay()
     }
@@ -65,8 +83,8 @@ class MetaDistanceConstraintNodeView: MetaNodeView {
         super.draw(self.bounds)
         
         let path = UIBezierPath()
-        path.move(to: self.constraintNode.nodeA.cgPoint.subtracting(self.frame.origin))
-        path.addLine(to: self.constraintNode.nodeB.cgPoint.subtracting(self.frame.origin))
+        path.move(to: self.quantityNode.nodeA.cgPoint.subtracting(self.frame.origin))
+        path.addLine(to: self.quantityNode.nodeB.cgPoint.subtracting(self.frame.origin))
 
         UIColor.systemYellow.set()
         path.lineWidth = 2.0
