@@ -21,12 +21,11 @@ class Model {
         
         self.constructionGraph.add(relationship: FollowPencilRelationship(node: nodeA, cgPoint: CGPoint(x: 200.0, y: 200.0)))
         self.constructionGraph.add(relationship: FollowPencilRelationship(node: nodeB, cgPoint: CGPoint(x: 300.0, y: 300.0)))
-        self.constructionGraph.update()
+        self.update()
         
-        self.constructionGraph.add(relationship: DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: 50.0, max: 150.0))
-        self.constructionGraph.add(relationship: DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: 50.0, max: 150.0))
-        self.constructionGraph.add(relationship: AffixRelationship(node: nodeB, cgPoint: CGPoint(x: 300.0, y: 300.0)))
-        self.constructionGraph.update()
+        let distanceNode = MetaDistanceQuantityNode(nodeA: nodeA, nodeB: nodeB, min: 50.0, max: 150.0)
+        self.metaGraph.add(node: distanceNode)
+        self.update()
     }
     
     func update() {

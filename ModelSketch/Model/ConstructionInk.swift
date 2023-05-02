@@ -18,6 +18,7 @@ class ConstructionNode: Hashable {
     }
 
     let id: Int
+    let graph: ConstructionGraph
     private(set) var x: Double
     private(set) var y: Double
     private(set) var outgoingRelationships: [Relationship]
@@ -29,8 +30,9 @@ class ConstructionNode: Hashable {
         return CGPoint(x: self.x, y: self.y)
     }
     
-    init() {
+    init(graph: ConstructionGraph) {
         self.id = ConstructionNode.getNextId()
+        self.graph = graph
         self.x = 0.0
         self.y = 0.0
         self.outgoingRelationships = []
@@ -146,7 +148,7 @@ class ConstructionGraph {
     }
     
     func createNode() -> ConstructionNode {
-        let node = ConstructionNode()
+        let node = ConstructionNode(graph: self)
         self.nodes.append(node)
         return node
     }

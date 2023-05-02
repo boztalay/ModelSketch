@@ -77,7 +77,13 @@ class MetaDistanceQuantityNode: MetaQuantityNode {
     init(nodeA: ConstructionNode, nodeB: ConstructionNode, min: Double? = nil, max: Double? = nil) {
         self.nodeA = nodeA
         self.nodeB = nodeB
+
         super.init(min: min, max: max)
+        
+        // TODO: Keep track of these relationships to remove them if this node gets removed
+        let graph = nodeA.graph
+        graph.add(relationship: DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: self.min, max: self.max))
+        graph.add(relationship: DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: self.min, max: self.max))
     }
     
     override func readQuantity() -> Double {
@@ -93,6 +99,10 @@ class MetaGraph {
     init(constructionGraph: ConstructionGraph) {
         self.nodes = []
         self.constructionGraph = constructionGraph
+    }
+    
+    func add(node: MetaNode) {
+        self.nodes.append(node)
     }
     
     func update() {
