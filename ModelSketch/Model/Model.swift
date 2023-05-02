@@ -16,4 +16,9 @@ class Model {
         self.constructionGraph = ConstructionGraph()
         self.metaGraph = MetaGraph(constructionGraph: self.constructionGraph)
     }
+    
+    func update() {
+        self.metaGraph.update()
+        self.constructionGraph.update()
+    }
 }

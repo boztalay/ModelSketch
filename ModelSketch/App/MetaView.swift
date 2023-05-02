@@ -69,7 +69,7 @@ class MetaDistanceQuantityNodeView: MetaNodeView {
         self.frame = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY).insetBy(dx: -2.0, dy: -2.0)
         self.quantityNode.cgPoint = self.center
         
-        self.label.text = "\(Int(round(self.quantityNode.getQuantity())))"
+        self.label.text = "\(Int(round(self.quantityNode.readQuantity())))"
         self.label.sizeToFit()
         self.label.frame = self.label.frame.insetBy(dx: -2.0, dy: -1.0)
         self.label.layer.cornerRadius = self.label.frame.height / 3.0

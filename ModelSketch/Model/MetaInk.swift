@@ -54,13 +54,18 @@ class MetaNode: Hashable {
 }
 
 class MetaQuantityNode: MetaNode {
+
+    var min: Double?
+    var max: Double?
     
-    func getQuantity() -> Double {
-        fatalError("getQuantity must be implemented")
+    init(min: Double? = nil, max: Double? = nil) {
+        self.min = min
+        self.max = max
+        super.init()
     }
     
-    func setQuantity(quantity: Double) {
-        fatalError("setQuantity must be implemented")
+    func readQuantity() -> Double {
+        fatalError("readQuantity must be implemented")
     }
 }
 
@@ -69,18 +74,14 @@ class MetaDistanceQuantityNode: MetaQuantityNode {
     let nodeA: ConstructionNode
     let nodeB: ConstructionNode
     
-    init(nodeA: ConstructionNode, nodeB: ConstructionNode) {
+    init(nodeA: ConstructionNode, nodeB: ConstructionNode, min: Double? = nil, max: Double? = nil) {
         self.nodeA = nodeA
         self.nodeB = nodeB
-        super.init()
+        super.init(min: min, max: max)
     }
     
-    override func getQuantity() -> Double {
+    override func readQuantity() -> Double {
         return self.nodeA.cgPoint.distance(to: self.nodeB.cgPoint)
-    }
-    
-    override func setQuantity(quantity: Double) {
-        // TODO: Nothing?
     }
 }
 
@@ -92,16 +93,9 @@ class MetaGraph {
     init(constructionGraph: ConstructionGraph) {
         self.nodes = []
         self.constructionGraph = constructionGraph
-        
-        let nodeA = self.constructionGraph.createNode()
-        nodeA.x = 200.0
-        nodeA.y = 200.0
-        
-        let nodeB = self.constructionGraph.createNode()
-        nodeB.x = 300.0
-        nodeB.y = 300.0
-        
-        let distanceQuantity = MetaDistanceQuantityNode(nodeA: nodeA, nodeB: nodeB)
-        self.nodes.append(distanceQuantity)
+    }
+    
+    func update() {
+        // Anything?
     }
 }

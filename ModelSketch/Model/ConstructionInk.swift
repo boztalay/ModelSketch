@@ -18,23 +18,82 @@ class ConstructionNode: Hashable {
     }
 
     let id: Int
-    var x: Double
-    var y: Double
+    private(set) var x: Double
+    private(set) var y: Double
+    private(set) var outgoingRelationships: [Relationship]
+    
+    private var lastXRelationshipPriority: RelationshipPriority?
+    private var lastYRelationshipPriority: RelationshipPriority?
     
     var cgPoint: CGPoint {
-        set {
-            self.x = newValue.x
-            self.y = newValue.y
-        }
-        get {
-            return CGPoint(x: self.x, y: self.y)
-        }
+        return CGPoint(x: self.x, y: self.y)
     }
     
     init() {
         self.id = ConstructionNode.getNextId()
         self.x = 0.0
         self.y = 0.0
+        self.outgoingRelationships = []
+    }
+    
+    func update() {
+        self.lastXRelationshipPriority = nil
+        self.lastYRelationshipPriority = nil
+    }
+    
+    func addOutgoingRelationship(_ relationship: Relationship) {
+        // TODO: Some validation that this relationship involves this node?
+        self.outgoingRelationships.append(relationship)
+    }
+    
+    func removeRelationship(_ relationship: Relationship) {
+        guard let index = self.outgoingRelationships.firstIndex(of: relationship) else {
+            return
+        }
+        
+        self.outgoingRelationships.remove(at: index)
+    }
+    
+    func removeRelationships(containing other: ConstructionNode) {
+        self.outgoingRelationships.removeAll(where: { $0.contains(other) })
+    }
+    
+    func canSetX(with relationship: Relationship) -> Bool {
+        guard let lastXRelationshipPriority = self.lastXRelationshipPriority else {
+            return true
+        }
+        
+        return (relationship.priority < lastXRelationshipPriority)
+    }
+    
+    func canSetY(with relationship: Relationship) -> Bool {
+        guard let lastYRelationshipPriority = self.lastYRelationshipPriority else {
+            return true
+        }
+        
+        return (relationship.priority < lastYRelationshipPriority)
+    }
+    
+    func set(x value: Double, with relationship: Relationship) -> Bool {
+        guard self.canSetX(with: relationship) else {
+            return false
+        }
+        
+        self.x = value
+        self.lastXRelationshipPriority = relationship.priority
+        
+        return true
+    }
+    
+    func set(y value: Double, with relationship: Relationship) -> Bool {
+        guard self.canSetY(with: relationship) else {
+            return false
+        }
+        
+        self.y = value
+        self.lastYRelationshipPriority = relationship.priority
+        
+        return true
     }
     
     static func == (lhs: ConstructionNode, rhs: ConstructionNode) -> Bool {
@@ -76,12 +135,14 @@ class ConstructionConnection: Hashable {
 
 class ConstructionGraph {
     
-    var nodes: [ConstructionNode]
-    var connections: [ConstructionConnection]
+    private(set) var nodes: [ConstructionNode]
+    private(set) var connections: [ConstructionConnection]
+    private(set) var relationships: [Relationship]
     
     init() {
         self.nodes = []
         self.connections = []
+        self.relationships = []
     }
     
     func createNode() -> ConstructionNode {
@@ -97,6 +158,10 @@ class ConstructionGraph {
         
         self.nodes.remove(at: index)
         self.connections.removeAll(where: { $0.contains(node) })
+        
+        for node in self.nodes {
+            node.removeRelationships(containing: node)
+        }
     }
     
     func connect(nodeA: ConstructionNode, nodeB: ConstructionNode) {
@@ -110,5 +175,32 @@ class ConstructionGraph {
         }
         
         self.connections.append(connection)
+    }
+
+    func add(relationship: Relationship) {
+        // TODO: Maybe validate that the relationship contains valid nodes?
+        self.relationships.append(relationship)
+        self.relationships.sort(by: { $0.priority > $1.priority })
+    }
+    
+    func update() {
+        for node in self.nodes {
+            node.update()
+        }
+        
+        for relationship in self.relationships {
+            if relationship.nodeIn == nil {
+                relationship.propagate()
+            }
+        }
+        
+        // TODO: This could be more efficient
+        for relationship in self.relationships.filter({ $0.temporary }) {
+            for node in self.nodes {
+                node.removeRelationship(relationship)
+            }
+        }
+        
+        self.relationships.removeAll(where: { $0.temporary })
     }
 }

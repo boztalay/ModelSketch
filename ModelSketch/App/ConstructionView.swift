@@ -134,7 +134,7 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                 self.partialConnections[nodeView] = location
                 self.setNeedsDisplay()
             } else if let translationDelta = gestureRecognizer.translationDelta {
-                nodeView.node.cgPoint = nodeView.node.cgPoint.adding(translationDelta)
+                self.graph.add(relationship: FollowPencilRelationship(node: nodeView.node, cgPoint: nodeView.node.cgPoint.adding(translationDelta)))
                 self.update()
             }
         }
@@ -155,7 +155,7 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     
     func handleCreateGesture(at location: CGPoint) {
         let node = self.graph.createNode()
-        node.cgPoint = location
+        self.graph.add(relationship: FollowPencilRelationship(node: node, cgPoint: location))
         self.update()
     }
     
@@ -177,6 +177,8 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     }
 
     func update() {
+        self.graph.update()
+        
         for node in self.graph.nodes {
             if self.nodeViews[node] == nil {
                 let nodeView = ConstructionNodeView(node: node)

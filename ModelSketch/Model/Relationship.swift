@@ -7,8 +7,6 @@
 
 import Foundation
 
-/*
-
 //
 // Base Relationship Classes
 //
@@ -16,8 +14,8 @@ import Foundation
 enum RelationshipPriority: Int, Comparable {
 
     case fixed     = 0
-    case userInput = 1
-    case normal    = 2
+    case normal    = 1
+    case userInput = 2
     
     static func < (lhs: RelationshipPriority, rhs: RelationshipPriority) -> Bool {
         return lhs.rawValue < rhs.rawValue
@@ -49,23 +47,11 @@ class Relationship: Hashable {
     }
     
     func propagate() {
-        let (affectedX, affectedY) = self.apply()
-        
-        if affectedX {
-            for relationship in self.nodeOut.outgoingRelationshipsX {
+        if self.apply() {
+            for relationship in self.nodeOut.outgoingRelationships {
                 relationship.propagate()
             }
         }
-        
-        if affectedY {
-            for relationship in self.nodeOut.outgoingRelationshipsY {
-                relationship.propagate()
-            }
-        }
-    }
-    
-    func apply() -> (Bool, Bool) {
-        fatalError("Need to implement apply")
     }
     
     func contains(_ node: ConstructionNode) -> Bool {
@@ -76,6 +62,10 @@ class Relationship: Hashable {
         }
         
         return (node == self.nodeOut)
+    }
+
+    func apply() -> Bool {
+        fatalError("apply must be implemented")
     }
     
     static func == (lhs: Relationship, rhs: Relationship) -> Bool {
@@ -118,9 +108,11 @@ class AffixRelationship: InputRelationship {
         self.init(node: node, cgPoint: cgPoint, priority: .fixed, temporary: false)
     }
 
-    override func apply() -> (Bool, Bool) {
-        return (self.nodeOut.set(x: self.cgPoint.x, with: self),
-                self.nodeOut.set(y: self.cgPoint.y, with: self))
+    override func apply() -> Bool {
+        // TODO: Use the canSet functions here
+        let couldSetX = self.nodeOut.set(x: self.cgPoint.x, with: self)
+        let couldSetY = self.nodeOut.set(y: self.cgPoint.y, with: self)
+        return (couldSetX || couldSetY)
     }
 }
 
@@ -131,112 +123,57 @@ class FollowPencilRelationship: AffixRelationship {
     }
 }
 
-class LimitXRelationship: InputRelationship {
+class DistanceRelationship: NodeToNodeRelationship {
     
     let min: Double?
     let max: Double?
     
-    init(node: ConstructionNode, min: Double?, max: Double?) {
+    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode, min: Double? = nil, max: Double? = nil) {
+        if let min = min, let max = max {
+            if min > max {
+                fatalError("min (\(min)) must be less than max (\(max))")
+            }
+        }
+        
         self.min = min
         self.max = max
-        super.init(node: node, priority: .fixed, temporary: false)
+
+        super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
+        
+        self.nodeIn!.addOutgoingRelationship(self)
     }
     
-    override func apply() -> (Bool, Bool) {
-        var affectedX = false
-        
-        if let min = self.min {
-            if self.nodeOut.x < min {
-                affectedX = self.nodeOut.set(x: min, with: self)
-            }
+    override func apply() -> Bool {
+        guard self.min != nil || self.max != nil else {
+            return false
         }
         
-        if let max = self.max {
-            if self.nodeOut.x > max {
-                affectedX = self.nodeOut.set(x: max, with: self)
-            }
+        // TODO: Use the canSet functions here
+        
+        let distance = self.nodeIn!.cgPoint.distance(to: self.nodeOut.cgPoint)
+        var targetDistance: Double? = nil
+        
+        if let min = self.min, distance < min {
+            targetDistance = min
         }
         
-        return (affectedX, false)
-    }
-}
-
-class LimitYRelationship: InputRelationship {
-    
-    let min: Double?
-    let max: Double?
-    
-    init(node: ConstructionNode, min: Double?, max: Double?) {
-        self.min = min
-        self.max = max
-        super.init(node: node, priority: .fixed, temporary: false)
-    }
-    
-    override func apply() -> (Bool, Bool) {
-        var affectedY = false
-        
-        if let min = self.min {
-            if self.nodeOut.y < min {
-                affectedY = self.nodeOut.set(y: min, with: self)
-            }
+        if let max = self.max, distance > max {
+            targetDistance = max
         }
         
-        if let max = self.max {
-            if self.nodeOut.y > max {
-                affectedY = self.nodeOut.set(y: max, with: self)
-            }
+        guard let targetDistance = targetDistance else {
+            return false
         }
         
-        return (false, affectedY)
+        let run = self.nodeOut.cgPoint.x - self.nodeIn!.cgPoint.x
+        let rise = self.nodeOut.cgPoint.y - self.nodeIn!.cgPoint.y
+        let angle = atan2(rise, run)
+        
+        let newRun = targetDistance * cos(angle)
+        let newRise = targetDistance * sin(angle)
+        
+        let couldSetX = self.nodeOut.set(x: self.nodeIn!.cgPoint.x + newRun, with: self)
+        let couldSetY = self.nodeOut.set(y: self.nodeIn!.cgPoint.y + newRise, with: self)
+        return (couldSetX || couldSetY)
     }
 }
-
-class EqualXXRelationship: NodeToNodeRelationship {
-    
-    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode) {
-        super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
-        nodeIn.add(outgoingRelationshipX: self)
-    }
-    
-    override func apply() -> (Bool, Bool) {
-        return (self.nodeOut.set(x: self.nodeIn!.x, with: self), false)
-    }
-}
-
-class EqualYYRelationship: NodeToNodeRelationship {
-    
-    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode) {
-        super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
-        nodeIn.add(outgoingRelationshipY: self)
-    }
-    
-    override func apply() -> (Bool, Bool) {
-        return (false, self.nodeOut.set(y: self.nodeIn!.y, with: self))
-    }
-}
-
-class EqualXYRelationship: NodeToNodeRelationship {
-    
-    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode) {
-        super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
-        nodeIn.add(outgoingRelationshipX: self)
-    }
-    
-    override func apply() -> (Bool, Bool) {
-        return (false, self.nodeOut.set(y: self.nodeIn!.x, with: self))
-    }
-}
-
-class EqualYXRelationship: NodeToNodeRelationship {
-    
-    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode) {
-        super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
-        nodeIn.add(outgoingRelationshipY: self)
-    }
-    
-    override func apply() -> (Bool, Bool) {
-        return (self.nodeOut.set(x: self.nodeIn!.y, with: self), false)
-    }
-}
-
-*/
