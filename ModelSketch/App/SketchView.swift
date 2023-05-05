@@ -55,11 +55,11 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         self.pencilStrokeView.strokeCompletion = self.strokeCompletion
         self.pencilStrokeView.pencilGestureRecognizer.delegate = self
         
-        self.metaView = MetaView(graph: self.model.metaGraph)
+        self.constructionView = ConstructionView(graph: self.model.constructionGraph)
+        self.metaView = MetaView(graph: self.model.metaGraph, constructionView: self.constructionView)
         self.addSubview(self.metaView)
         self.metaView.isUserInteractionEnabled = false
-        
-        self.constructionView = ConstructionView(graph: self.model.constructionGraph)
+
         self.addSubview(self.constructionView)
         self.constructionView.isUserInteractionEnabled = false
 
@@ -78,8 +78,10 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         switch self.drawingMode {
             case .construction:
                 self.nodePanGestureRecognizer.nodeDelegate = self.constructionView
+                self.nodePanGestureRecognizer.isHardPress = false
             case .meta:
                 self.nodePanGestureRecognizer.nodeDelegate = self.metaView
+                self.nodePanGestureRecognizer.isHardPress = true
         }
     }
 

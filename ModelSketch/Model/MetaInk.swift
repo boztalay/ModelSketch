@@ -81,9 +81,11 @@ class MetaDistanceQuantityNode: MetaQuantityNode {
         super.init(min: min, max: max)
         
         // TODO: Keep track of these relationships to remove them if this node gets removed
-        let graph = nodeA.graph
-        graph.add(relationship: DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: self.min, max: self.max))
-        graph.add(relationship: DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: self.min, max: self.max))
+        if self.min != nil || self.max != nil {
+            let graph = nodeA.graph
+            graph.add(relationship: DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: self.min, max: self.max))
+            graph.add(relationship: DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: self.min, max: self.max))
+        }
     }
     
     override func readQuantity() -> Double {

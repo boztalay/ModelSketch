@@ -100,28 +100,75 @@ class MetaDistanceQuantityNodeView: MetaNodeView {
 class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
 
     let graph: MetaGraph
+    let constructionView: ConstructionView
     var nodeViews: [MetaNode : MetaNodeView]
+    var partialConnection: (UIView, CGPoint)?
     
-    init(graph: MetaGraph) {
+    init(graph: MetaGraph, constructionView: ConstructionView) {
         self.graph = graph
+        self.constructionView = constructionView
         self.nodeViews = [:]
 
         super.init(frame: CGRect.zero)
         
-        self.update()
+        self.backgroundColor = .clear
     }
     
     func getNodeView(at location: CGPoint) -> UIView? {
         // TODO
-        return nil
+        return self.constructionView.getNodeView(at: location)
     }
     
     func hardPressStatusChanged(_ gestureRecognizer: NodePanGestureRecognizer) {
-        // TODO
+        if let nodeView = gestureRecognizer.nodeView as? ConstructionNodeView {
+            if gestureRecognizer.isHardPress {
+                nodeView.setHighlightState(.startOfMetaQuantity)
+            } else {
+                nodeView.setHighlightState(.normal)
+            }
+        }
     }
 
     func handleNodePanGestureUpdate(_ gestureRecognizer: NodePanGestureRecognizer) {
-        // TODO
+        let location = gestureRecognizer.location(in: self)
+
+        if gestureRecognizer.state == .began {
+            if gestureRecognizer.isHardPress {
+                if let nodeView = gestureRecognizer.nodeView {
+                    self.partialConnection = (nodeView, location)
+                    self.setNeedsDisplay()
+                }
+            }
+        }
+        
+        if gestureRecognizer.state == .changed {
+            if gestureRecognizer.isHardPress {
+                if let nodeView = gestureRecognizer.nodeView {
+                    self.partialConnection = (nodeView, location)
+                    self.setNeedsDisplay()
+                }
+            } else if let translationDelta = gestureRecognizer.translationDelta {
+                // TODO: Move the current node around
+            }
+        }
+        
+        if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
+            if gestureRecognizer.isHardPress {
+                guard let startNodeView = self.partialConnection?.0 as? ConstructionNodeView else {
+                    return
+                }
+                
+                if let endNodeView = self.constructionView.getNodeView(at: location) as? ConstructionNodeView {
+                    let distanceNode = MetaDistanceQuantityNode(nodeA: startNodeView.node, nodeB: endNodeView.node)
+                    self.graph.add(node: distanceNode)
+                }
+                
+                startNodeView.setHighlightState(.normal)
+                
+                self.partialConnection = nil
+                self.update()
+            }
+        }
     }
     
     func handleCreateGesture(at location: CGPoint) {
@@ -153,6 +200,25 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
         }
         
         self.setNeedsDisplay()
+    }
+    
+    func drawLine(start: CGPoint, end: CGPoint, lineWidth: CGFloat, color: UIColor) {
+        let path = UIBezierPath()
+        path.move(to: start)
+        path.addLine(to: end)
+        
+        color.set()
+        path.lineWidth = lineWidth
+        path.stroke()
+    }
+    
+    override func draw(_ rect: CGRect) {
+        super.draw(self.bounds)
+        
+        if let (nodeView, endPoint) = self.partialConnection as? (ConstructionNodeView, CGPoint) {
+            let startPoint = nodeView.node.cgPoint
+            self.drawLine(start: startPoint, end: endPoint, lineWidth: 3.0, color: .systemYellow)
+        }
     }
     
     required init?(coder: NSCoder) {

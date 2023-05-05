@@ -18,9 +18,13 @@ class Model {
         
         let nodeA = self.constructionGraph.createNode()
         let nodeB = self.constructionGraph.createNode()
+        let nodeC = self.constructionGraph.createNode()
+        let nodeD = self.constructionGraph.createNode()
         
         self.constructionGraph.add(relationship: FollowPencilRelationship(node: nodeA, cgPoint: CGPoint(x: 200.0, y: 200.0)))
         self.constructionGraph.add(relationship: FollowPencilRelationship(node: nodeB, cgPoint: CGPoint(x: 300.0, y: 300.0)))
+        self.constructionGraph.add(relationship: FollowPencilRelationship(node: nodeC, cgPoint: CGPoint(x: 400.0, y: 400.0)))
+        self.constructionGraph.add(relationship: FollowPencilRelationship(node: nodeD, cgPoint: CGPoint(x: 500.0, y: 500.0)))
         self.update()
         
         let distanceNode = MetaDistanceQuantityNode(nodeA: nodeA, nodeB: nodeB, min: 50.0, max: 150.0)

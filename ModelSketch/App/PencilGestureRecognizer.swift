@@ -181,6 +181,9 @@ class PencilStroke {
             return nil
         }
         
+        return nil
+        
+        /*
         let prediction = try! PencilStroke.model.prediction(image: image.pixelBuffer()!)
         let gestureClass = PencilGesture(rawValue: prediction.classLabel)!
         
@@ -191,6 +194,7 @@ class PencilStroke {
         
         self.gesture = gestureClass
         return self.gesture
+         */
     }
     
     func walkPath(stride: CGFloat) -> [CGPoint]? {
@@ -219,7 +223,7 @@ class PencilGestureRecognizer: InstantPanGestureRecognizer {
 
         self.minimumNumberOfTouches = 1
         self.maximumNumberOfTouches = 1
-        self.allowedTouchTypes = [NSNumber(integerLiteral: UITouch.TouchType.pencil.rawValue)]
+//        self.allowedTouchTypes = [NSNumber(integerLiteral: UITouch.TouchType.pencil.rawValue)]
     }
     
     func addLocationToStroke() {

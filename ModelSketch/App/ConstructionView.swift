@@ -12,13 +12,16 @@ class ConstructionNodeView: UIView {
     enum HighlightState {
         case normal
         case startOfConnection
+        case startOfMetaQuantity
         
         var color: UIColor {
             switch self {
                 case .normal:
-                    return UIColor.darkGray
+                    return .darkGray
                 case .startOfConnection:
-                    return UIColor.systemBlue
+                    return .systemBlue
+                case .startOfMetaQuantity:
+                    return .systemYellow
             }
         }
     }
@@ -81,12 +84,11 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     
     let graph: ConstructionGraph
     var nodeViews: [ConstructionNode : ConstructionNodeView]
-    var partialConnections: [ConstructionNodeView : CGPoint]
+    var partialConnection: (ConstructionNodeView, CGPoint)?
     
     init(graph: ConstructionGraph) {
         self.graph = graph
         self.nodeViews = [:]
-        self.partialConnections = [:]
 
         super.init(frame: CGRect.zero)
         
@@ -124,14 +126,14 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
 
         if gestureRecognizer.state == .began {
             if gestureRecognizer.isHardPress {
-                self.partialConnections[nodeView] = location
+                self.partialConnection = (nodeView, location)
                 self.setNeedsDisplay()
             }
         }
         
         if gestureRecognizer.state == .changed {
             if gestureRecognizer.isHardPress {
-                self.partialConnections[nodeView] = location
+                self.partialConnection = (nodeView, location)
                 self.setNeedsDisplay()
             } else if let translationDelta = gestureRecognizer.translationDelta {
                 self.graph.add(relationship: FollowPencilRelationship(node: nodeView.node, cgPoint: nodeView.node.cgPoint.adding(translationDelta)))
@@ -147,7 +149,7 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                 
                 nodeView.setHighlightState(.normal)
                 
-                self.partialConnections.removeValue(forKey: nodeView)
+                self.partialConnection = nil
                 self.update()
             }
         }
@@ -214,7 +216,7 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     override func draw(_ rect: CGRect) {
         super.draw(self.bounds)
         
-        for (nodeView, endPoint) in self.partialConnections {
+        if let (nodeView, endPoint) = self.partialConnection {
             let startPoint = nodeView.node.cgPoint
             self.drawLine(start: startPoint, end: endPoint, lineWidth: 3.0, color: .lightGray)
         }
