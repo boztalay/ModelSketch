@@ -159,7 +159,7 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                 }
                 
                 if let endNodeView = self.constructionView.getNodeView(at: location) as? ConstructionNodeView {
-                    let distanceNode = MetaDistanceQuantityNode(nodeA: startNodeView.node, nodeB: endNodeView.node)
+                    let distanceNode = MetaDistanceQuantityNode(nodeA: startNodeView.node, nodeB: endNodeView.node, min: 50.0, max: 150.0)
                     self.graph.add(node: distanceNode)
                 }
                 

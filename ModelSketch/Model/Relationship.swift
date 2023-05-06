@@ -127,8 +127,30 @@ class DistanceRelationship: NodeToNodeRelationship {
     
     let min: Double?
     let max: Double?
+    let minRelationship: DistanceRelationship?
+    let maxRelationship: DistanceRelationship?
     
-    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode, min: Double? = nil, max: Double? = nil) {
+    var distance: Double {
+        return self.nodeIn!.cgPoint.distance(to: self.nodeOut.cgPoint)
+    }
+    
+    var minDistance: Double? {
+        return self.minRelationship?.distance ?? self.min
+    }
+    
+    var maxDistance: Double? {
+        return self.maxRelationship?.distance ?? self.max
+    }
+    
+    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode, min: Double? = nil, max: Double? = nil, minRelationship: DistanceRelationship? = nil, maxRelationship: DistanceRelationship? = nil) {
+        guard min == nil || minRelationship == nil else {
+            fatalError("Can't have both min and minRelationship set")
+        }
+        
+        guard max == nil || maxRelationship == nil else {
+            fatalError("Can't have both max and maxRelationship set")
+        }
+        
         if let min = min, let max = max {
             if min > max {
                 fatalError("min (\(min)) must be less than max (\(max))")
@@ -137,27 +159,36 @@ class DistanceRelationship: NodeToNodeRelationship {
         
         self.min = min
         self.max = max
+        self.minRelationship = minRelationship
+        self.maxRelationship = maxRelationship
 
         super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
         
         self.nodeIn!.addOutgoingRelationship(self)
+        
+        if let minRelationship = self.minRelationship {
+            minRelationship.nodeIn!.addOutgoingRelationship(self)
+        }
+        
+        if let maxRelationship = self.maxRelationship {
+            maxRelationship.nodeIn!.addOutgoingRelationship(self)
+        }
     }
     
     override func apply() -> Bool {
-        guard self.min != nil || self.max != nil else {
+        guard self.minDistance != nil || self.maxDistance != nil else {
             return false
         }
         
         // TODO: Use the canSet functions here
-        
-        let distance = self.nodeIn!.cgPoint.distance(to: self.nodeOut.cgPoint)
+
         var targetDistance: Double? = nil
         
-        if let min = self.min, distance < min {
+        if let min = self.minDistance, self.distance < min {
             targetDistance = min
         }
         
-        if let max = self.max, distance > max {
+        if let max = self.maxDistance, self.distance > max {
             targetDistance = max
         }
         

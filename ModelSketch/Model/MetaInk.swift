@@ -14,6 +14,27 @@ import Foundation
 // then define constraints between those quantites
 // and map those constraints to Relationships in the construction graph
 
+// meta quantity nodes have either literal values for min and max, or are connected to other nodes to get those values
+// plain meta nodes implement readQuantity by calling their connected node's readQuantity
+//  - this makes the graph traversal simple
+// plain meta nodes can connect to any number of other nodes? maybe just two?
+//  - if there were more than two, how would you know which one to ask for a value?
+//  - maybe it just sets up an equality constraint, per crosscut
+//    - still not totally sure how this would be implemented
+
+// need a way to set up relationships that aren't directly connected through nodes
+//  - e.g. a distance relationship that queries another distance relationship and gets
+//    updates when the source gets updates
+//  - that might just be a "queried distance relationship" or something like that, a relationship
+//    that takes in two nodes and another relationship
+//  - then that "queried distance relationship" gets added as an outgoing relationship of the
+//    nodeIn of the source relationship
+//  - to keep it symmetric, say there's the source quantity with nodes A and B, and the
+//    dependent quantity with nodes C and D, then you'd have two queried relationships,
+//    one going from C to D and is an outgoing relationship on A (and taking in the A to B
+//    relationship), and another going from D to C and is an outgoing relationship on B
+//    (and taking in the B to A relationship)
+
 class MetaNode: Hashable {
 
     static var nextId: Int = 0
@@ -57,10 +78,31 @@ class MetaQuantityNode: MetaNode {
 
     var min: Double?
     var max: Double?
+    var minNode: MetaQuantityNode?
+    var maxNode: MetaQuantityNode?
     
-    init(min: Double? = nil, max: Double? = nil) {
+    var minQuantity: Double? {
+        return self.minNode?.readQuantity() ?? self.min
+    }
+
+    var maxQuantity: Double? {
+        return self.maxNode?.readQuantity() ?? self.max
+    }
+    
+    init(min: Double? = nil, max: Double? = nil, minNode: MetaQuantityNode? = nil, maxNode: MetaQuantityNode? = nil) {
+        guard min == nil || minNode == nil else {
+            fatalError("MetaQuantityNode can't have both min and minNode set")
+        }
+        
+        guard max == nil || maxNode == nil else {
+            fatalError("MetaQuantityNode can't have both max and maxNode set")
+        }
+        
         self.min = min
         self.max = max
+        self.minNode = minNode
+        self.maxNode = maxNode
+
         super.init()
     }
     
@@ -73,18 +115,26 @@ class MetaDistanceQuantityNode: MetaQuantityNode {
     
     let nodeA: ConstructionNode
     let nodeB: ConstructionNode
+    var relationshipAB: DistanceRelationship?
+    var relationshipBA: DistanceRelationship?
     
-    init(nodeA: ConstructionNode, nodeB: ConstructionNode, min: Double? = nil, max: Double? = nil) {
+    init(nodeA: ConstructionNode, nodeB: ConstructionNode, min: Double? = nil, max: Double? = nil, minNode: MetaQuantityNode? = nil, maxNode: MetaQuantityNode? = nil) {
         self.nodeA = nodeA
         self.nodeB = nodeB
+        self.relationshipAB = nil
+        self.relationshipBA = nil
 
-        super.init(min: min, max: max)
-        
-        // TODO: Keep track of these relationships to remove them if this node gets removed
-        if self.min != nil || self.max != nil {
-            let graph = nodeA.graph
-            graph.add(relationship: DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: self.min, max: self.max))
-            graph.add(relationship: DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: self.min, max: self.max))
+        super.init(min: min, max: max, minNode: minNode, maxNode: maxNode)
+
+        if self.minQuantity != nil || self.maxQuantity != nil {
+            let minDistanceQuantityNode = minNode as? MetaDistanceQuantityNode
+            let maxDistanceQuantityNode = maxNode as? MetaDistanceQuantityNode
+            
+            self.relationshipAB = DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipAB, maxRelationship: maxDistanceQuantityNode?.relationshipAB)
+            self.relationshipBA = DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipBA, maxRelationship: maxDistanceQuantityNode?.relationshipBA)
+
+            nodeA.graph.add(relationship: self.relationshipAB!)
+            nodeA.graph.add(relationship: self.relationshipBA!)
         }
     }
     
