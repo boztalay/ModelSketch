@@ -43,6 +43,13 @@ extension CGPoint {
             y: self.y - other.y
         )
     }
+    
+    func scaled(by scalar: CGFloat) -> CGPoint {
+        return CGPoint(
+            x: scalar * self.x,
+            y: scalar * self.y
+        )
+    }
 }
 
 extension CGRect {
