@@ -27,11 +27,11 @@ class Model {
         self.constructionGraph.add(relationship: FollowPencilRelationship(node: nodeD, cgPoint: CGPoint(x: 500.0, y: 500.0)))
         self.update()
         
-        let distanceNodeAB = MetaDistanceQuantityNode(nodeA: nodeA, nodeB: nodeB, min: 50.0, max: 150.0)
-        self.metaGraph.add(node: distanceNodeAB)
-        
-        let distanceNodeCD = MetaDistanceQuantityNode(nodeA: nodeC, nodeB: nodeD, minNode: distanceNodeAB, maxNode: distanceNodeAB)
-        self.metaGraph.add(node: distanceNodeCD)
+//        let distanceNodeAB = MetaDistanceQuantityNode(nodeA: nodeA, nodeB: nodeB)
+//        self.metaGraph.add(node: distanceNodeAB)
+//        
+//        let distanceNodeCD = MetaDistanceQuantityNode(nodeA: nodeC, nodeB: nodeD, maxNode: distanceNodeAB)
+//        self.metaGraph.add(node: distanceNodeCD)
         
         self.update()
     }

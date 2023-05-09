@@ -7,6 +7,13 @@
 
 import UIKit
 
+class MetaQuanitityLabel: UILabel {
+    
+    func containsPoint(_ point: CGPoint) -> Bool {
+        return (point.distance(to: self.center) < (MetaTerminalView.radius * MetaTerminalView.touchTargetScale))
+    }
+}
+
 class MetaTerminalView: UIView {
     
     static let radius = 5.0
@@ -65,7 +72,7 @@ class MetaNodeView: UIView {
 
 class MetaDistanceQuantityNodeView: MetaNodeView {
     
-    var label: UILabel!
+    var label: MetaQuanitityLabel!
     var minTerminalView: MetaTerminalView!
     var maxTerminalView: MetaTerminalView!
     
@@ -78,7 +85,7 @@ class MetaDistanceQuantityNodeView: MetaNodeView {
 
         self.backgroundColor = .clear
         
-        self.label = UILabel(frame: .zero)
+        self.label = MetaQuanitityLabel(frame: .zero)
         self.addSubview(self.label)
         self.label.font = UIFont.systemFont(ofSize: 10.0)
         self.label.textColor = .systemYellow
@@ -135,6 +142,10 @@ class MetaDistanceQuantityNodeView: MetaNodeView {
     }
     
     override func view(at location: CGPoint) -> UIView? {
+        if self.label.containsPoint(location.subtracting(self.frame.origin)) {
+            return self.label
+        }
+        
         if self.minTerminalView.containsPoint(location.subtracting(self.frame.origin)) {
             return self.minTerminalView
         }
@@ -157,11 +168,13 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     let constructionView: ConstructionView
     var nodeViews: [MetaNode : MetaNodeView]
     var partialConnection: (UIView, CGPoint)?
+    var connections: [(UIView, UIView)]
     
     init(graph: MetaGraph, constructionView: ConstructionView) {
         self.graph = graph
         self.constructionView = constructionView
         self.nodeViews = [:]
+        self.connections = []
 
         super.init(frame: CGRect.zero)
         
@@ -213,13 +226,29 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
         
         if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
             if gestureRecognizer.isHardPress {
-                if let startNodeView = self.partialConnection?.0 as? ConstructionNodeView {
+                let startView = self.partialConnection?.0
+                
+                if let startNodeView = startView as? ConstructionNodeView {
                     if let endNodeView = self.constructionView.getNodeView(at: location) as? ConstructionNodeView {
-                        let distanceNode = MetaDistanceQuantityNode(nodeA: startNodeView.node, nodeB: endNodeView.node, min: 50.0, max: 150.0)
+                        let distanceNode = MetaDistanceQuantityNode(nodeA: startNodeView.node, nodeB: endNodeView.node)
                         self.graph.add(node: distanceNode)
                     }
                     
                     startNodeView.setHighlightState(.normal)
+                } else if let startQuantityLabel = startView as? MetaQuanitityLabel {
+                    if let endTerminalView = self.getNodeView(at: location) as? MetaTerminalView {
+                        let startDistanceNodeView = startQuantityLabel.superview as! MetaDistanceQuantityNodeView
+                        
+                        let endDistanceNodeView = endTerminalView.superview as! MetaDistanceQuantityNodeView
+                        if endTerminalView == endDistanceNodeView.minTerminalView {
+                            endDistanceNodeView.quantityNode.minNode = startDistanceNodeView.quantityNode
+                        } else if endTerminalView == endDistanceNodeView.maxTerminalView {
+                            endDistanceNodeView.quantityNode.maxNode = startDistanceNodeView.quantityNode
+                        }
+                        
+                        self.connections.append((startQuantityLabel, endTerminalView))
+                        endDistanceNodeView.quantityNode.updateRelationships()
+                    }
                 }
                 
                 self.partialConnection = nil
@@ -272,19 +301,33 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     override func draw(_ rect: CGRect) {
         super.draw(self.bounds)
         
-        var start: CGPoint? = nil
-        var end: CGPoint? = nil
-        
-        if let (nodeView, endPoint) = self.partialConnection as? (ConstructionNodeView, CGPoint) {
-            start = nodeView.node.cgPoint
-            end = endPoint
-        } else if let (terminalView, endPoint) = self.partialConnection as? (MetaTerminalView, CGPoint) {
-            start = terminalView.center.adding(terminalView.superview!.frame.origin)
-            end = endPoint
+        if let partialConnection = self.partialConnection {
+            var start: CGPoint? = nil
+            var end: CGPoint? = nil
+            
+            if let (nodeView, endPoint) = partialConnection as? (ConstructionNodeView, CGPoint) {
+                start = nodeView.node.cgPoint
+                end = endPoint
+            } else if let (terminalView, endPoint) = partialConnection as? (MetaTerminalView, CGPoint) {
+                start = terminalView.center.adding(terminalView.superview!.frame.origin)
+                end = endPoint
+            } else if let (quantityLabel, endPoint) = partialConnection as? (MetaQuanitityLabel, CGPoint) {
+                start = quantityLabel.center.adding(quantityLabel.superview!.frame.origin)
+                end = endPoint
+            }
+            
+            if let start = start, let end = end {
+                self.drawLine(start: start, end: end, lineWidth: 3.0, color: .systemYellow)
+            }
         }
         
-        if let start = start, let end = end {
-            self.drawLine(start: start, end: end, lineWidth: 3.0, color: .systemYellow)
+        for connection in self.connections {
+            self.drawLine(
+                start: connection.0.center.adding(connection.0.superview!.frame.origin),
+                end: connection.1.center.adding(connection.1.superview!.frame.origin),
+                lineWidth: 3.0,
+                color: .systemYellow
+            )
         }
     }
     

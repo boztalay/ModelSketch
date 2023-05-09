@@ -109,6 +109,10 @@ class MetaQuantityNode: MetaNode {
     func readQuantity() -> Double {
         fatalError("readQuantity must be implemented")
     }
+    
+    func updateRelationships() {
+        fatalError("updateRelationships must be implemented")
+    }
 }
 
 class MetaDistanceQuantityNode: MetaQuantityNode {
@@ -125,17 +129,31 @@ class MetaDistanceQuantityNode: MetaQuantityNode {
         self.relationshipBA = nil
 
         super.init(min: min, max: max, minNode: minNode, maxNode: maxNode)
-
-        if self.minQuantity != nil || self.maxQuantity != nil {
-            let minDistanceQuantityNode = minNode as? MetaDistanceQuantityNode
-            let maxDistanceQuantityNode = maxNode as? MetaDistanceQuantityNode
-            
-            self.relationshipAB = DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipAB, maxRelationship: maxDistanceQuantityNode?.relationshipAB)
-            self.relationshipBA = DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipBA, maxRelationship: maxDistanceQuantityNode?.relationshipBA)
-
-            nodeA.graph.add(relationship: self.relationshipAB!)
-            nodeA.graph.add(relationship: self.relationshipBA!)
+        
+        self.updateRelationships()
+    }
+    
+    override func updateRelationships() {
+        let graph = self.nodeA.graph
+        
+        if let relationshipAB = self.relationshipAB {
+            graph.remove(relationship: relationshipAB)
+            self.relationshipAB = nil
         }
+        
+        if let relationshipBA = self.relationshipBA {
+            graph.remove(relationship: relationshipBA)
+            self.relationshipBA = nil
+        }
+
+        let minDistanceQuantityNode = minNode as? MetaDistanceQuantityNode
+        let maxDistanceQuantityNode = maxNode as? MetaDistanceQuantityNode
+        
+        self.relationshipAB = DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipAB, maxRelationship: maxDistanceQuantityNode?.relationshipAB)
+        self.relationshipBA = DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipBA, maxRelationship: maxDistanceQuantityNode?.relationshipBA)
+        
+        graph.add(relationship: self.relationshipAB!)
+        graph.add(relationship: self.relationshipBA!)
     }
     
     override func readQuantity() -> Double {

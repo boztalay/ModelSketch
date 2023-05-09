@@ -68,6 +68,10 @@ class Relationship: Hashable {
         fatalError("apply must be implemented")
     }
     
+    func removeFromNodes() {
+        fatalError("removeFromNodes must be implemented")
+    }
+    
     static func == (lhs: Relationship, rhs: Relationship) -> Bool {
         return (lhs.id == rhs.id)
     }
@@ -81,6 +85,10 @@ class InputRelationship: Relationship {
     
     init(node: ConstructionNode, priority: RelationshipPriority, temporary: Bool) {
         super.init(nodeIn: nil, nodeOut: node, priority: priority, temporary: temporary)
+    }
+    
+    override func removeFromNodes() {
+
     }
 }
 
@@ -176,13 +184,9 @@ class DistanceRelationship: NodeToNodeRelationship {
     }
     
     override func apply() -> Bool {
-        guard self.minDistance != nil || self.maxDistance != nil else {
-            return false
-        }
-        
         // TODO: Use the canSet functions here
 
-        var targetDistance: Double? = nil
+        var targetDistance = self.distance
         
         if let min = self.minDistance, self.distance < min {
             targetDistance = min
@@ -190,10 +194,6 @@ class DistanceRelationship: NodeToNodeRelationship {
         
         if let max = self.maxDistance, self.distance > max {
             targetDistance = max
-        }
-        
-        guard let targetDistance = targetDistance else {
-            return false
         }
         
         let run = self.nodeOut.cgPoint.x - self.nodeIn!.cgPoint.x
@@ -206,5 +206,18 @@ class DistanceRelationship: NodeToNodeRelationship {
         let couldSetX = self.nodeOut.set(x: self.nodeIn!.cgPoint.x + newRun, with: self)
         let couldSetY = self.nodeOut.set(y: self.nodeIn!.cgPoint.y + newRise, with: self)
         return (couldSetX || couldSetY)
+    }
+    
+    
+    override func removeFromNodes() {
+        self.nodeIn!.removeRelationship(self)
+        
+        if let minRelationship = self.minRelationship {
+            minRelationship.nodeIn!.removeRelationship(self)
+        }
+        
+        if let maxRelationship = self.maxRelationship {
+            maxRelationship.nodeIn!.removeRelationship(self)
+        }
     }
 }

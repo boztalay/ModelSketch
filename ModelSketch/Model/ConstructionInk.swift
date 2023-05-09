@@ -185,6 +185,15 @@ class ConstructionGraph {
         self.relationships.sort(by: { $0.priority > $1.priority })
     }
     
+    func remove(relationship: Relationship) {
+        guard let index = self.relationships.firstIndex(of: relationship) else {
+            return
+        }
+        
+        self.relationships.remove(at: index)
+        relationship.removeFromNodes()
+    }
+    
     func update() {
         for node in self.nodes {
             node.update()
