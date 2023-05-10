@@ -40,7 +40,7 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
         }
 
         self.nodeView = nil
-//        self.isHardPress = false
+        self.isHardPress = false
         self.lastLocation = nil
         self.translationDelta = nil
     
@@ -67,9 +67,8 @@ class NodePanGestureRecognizer: UIPanGestureRecognizer {
         self.lastLocation = location
         
         if self.state == .possible {
-            // TODO: Put back
-//            let force = touches.first!.perpendicularForce
-//            self.isHardPress = (force > NodePanGestureRecognizer.hardPressForceThreshold)
+            let force = touches.first!.perpendicularForce
+            self.isHardPress = (force > NodePanGestureRecognizer.hardPressForceThreshold)
             
             nodeDelegate.hardPressStatusChanged(self)
 

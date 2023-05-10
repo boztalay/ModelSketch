@@ -78,10 +78,8 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         switch self.drawingMode {
             case .construction:
                 self.nodePanGestureRecognizer.nodeDelegate = self.constructionView
-                self.nodePanGestureRecognizer.isHardPress = false
             case .meta:
                 self.nodePanGestureRecognizer.nodeDelegate = self.metaView
-                self.nodePanGestureRecognizer.isHardPress = true
         }
     }
 

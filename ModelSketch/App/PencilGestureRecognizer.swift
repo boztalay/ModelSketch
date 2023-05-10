@@ -187,10 +187,7 @@ class PencilStroke {
         guard let image = self.renderImage() else {
             return nil
         }
-        
-        return nil
-        
-        /*
+
         let prediction = try! PencilStroke.model.prediction(image: image.pixelBuffer()!)
         let gestureClass = PencilGesture(rawValue: prediction.classLabel)!
         
@@ -201,7 +198,6 @@ class PencilStroke {
         
         self.gesture = gestureClass
         return self.gesture
-         */
     }
     
     func walkPath(stride: CGFloat) -> [CGPoint]? {
