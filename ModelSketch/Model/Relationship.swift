@@ -152,6 +152,7 @@ class DistanceRelationship: NodeToNodeRelationship {
     
     let min: Double?
     let max: Double?
+    var equalRelationship: DistanceRelationship?
     
     var distance: Double {
         return self.nodeIn.cgPoint.distance(to: self.nodeOut.cgPoint)
@@ -172,17 +173,26 @@ class DistanceRelationship: NodeToNodeRelationship {
         self.nodeIn.addOutgoingRelationship(self)
     }
     
+    func setEqualRelationship(_ other: DistanceRelationship) {
+        self.equalRelationship = other
+        self.equalRelationship!.nodeIn.addOutgoingRelationship(self)
+    }
+    
     override func apply() -> Bool {
         // TODO: Use the canSet functions here
 
         var targetDistance = self.distance
         
-        if let min = self.min, self.distance < min {
-            targetDistance = min
-        }
-        
-        if let max = self.max, self.distance > max {
-            targetDistance = max
+        if let equalRelationship = self.equalRelationship {
+            targetDistance = equalRelationship.distance
+        } else {
+            if let min = self.min, self.distance < min {
+                targetDistance = min
+            }
+            
+            if let max = self.max, self.distance > max {
+                targetDistance = max
+            }
         }
         
         let run = self.nodeOut.cgPoint.x - self.nodeIn.cgPoint.x
