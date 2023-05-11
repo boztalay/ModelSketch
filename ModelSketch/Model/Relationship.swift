@@ -183,7 +183,7 @@ class DistanceRelationship: NodeToNodeRelationship {
 
         var targetDistance = self.distance
         
-        if let equalRelationship = self.equalRelationship {
+        if let equalRelationship = self.equalRelationship, equalRelationship.inheritedPriority != nil {
             targetDistance = equalRelationship.distance
         } else {
             if let min = self.min, self.distance < min {

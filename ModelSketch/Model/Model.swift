@@ -61,10 +61,14 @@ class Model {
         let feDistance = DistanceRelationship(nodeIn: nodeF, nodeOut: nodeE)
         let ghDistance = DistanceRelationship(nodeIn: nodeG, nodeOut: nodeH)
         let hgDistance = DistanceRelationship(nodeIn: nodeH, nodeOut: nodeG)
+        self.constructionGraph.add(relationship: efDistance)
+        self.constructionGraph.add(relationship: feDistance)
+        self.constructionGraph.add(relationship: ghDistance)
+        self.constructionGraph.add(relationship: hgDistance)
         efDistance.setEqualRelationship(ghDistance)
         feDistance.setEqualRelationship(hgDistance)
-//        ghDistance.setEqualRelationship(efDistance)
-//        hgDistance.setEqualRelationship(feDistance)
+        ghDistance.setEqualRelationship(efDistance)
+        hgDistance.setEqualRelationship(feDistance)
         self.update()
     }
     

@@ -168,6 +168,8 @@ class ConstructionGraph {
         for node in self.nodes {
             node.removeRelationships(containing: node)
         }
+        
+        self.relationships.removeAll(where: { $0.contains(node) })
     }
     
     func connect(nodeA: ConstructionNode, nodeB: ConstructionNode) {
@@ -207,6 +209,10 @@ class ConstructionGraph {
         inputRelationships.sort(by: { $0.priority > $1.priority })
         
         for relationship in inputRelationships {
+            for relationship in self.relationships {
+                relationship.inheritedPriority = nil
+            }
+            
             relationship.propagateWithPriority()
         }
         
