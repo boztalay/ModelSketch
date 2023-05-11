@@ -32,7 +32,6 @@ class ConstructionNode: Hashable {
     
     init(graph: ConstructionGraph) {
         self.id = ConstructionNode.getNextId()
-        print(self.id)
         self.graph = graph
         self.x = 0.0
         self.y = 0.0
@@ -211,7 +210,7 @@ class ConstructionGraph {
         
         for relationship in inputRelationships {
             for relationship in self.relationships {
-                relationship.inheritedPriority = nil
+                relationship.resetForPropagation()
             }
             
             relationship.propagateWithPriority()

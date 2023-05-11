@@ -145,6 +145,11 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
             if gestureRecognizer.isHardPress {
                 if let endNodeView = self.getNodeView(at: location) as? ConstructionNodeView {
                     self.graph.connect(nodeA: nodeView.node, nodeB: endNodeView.node)
+
+                    // TODO: Just for testing
+                    let distance = nodeView.node.cgPoint.distance(to: endNodeView.node.cgPoint)
+                    self.graph.add(relationship: DistanceRelationship(nodeIn: nodeView.node, nodeOut: endNodeView.node, min: distance, max: distance))
+                    self.graph.add(relationship: DistanceRelationship(nodeIn: endNodeView.node, nodeOut: nodeView.node, min: distance, max: distance))
                 }
                 
                 nodeView.setHighlightState(.normal)

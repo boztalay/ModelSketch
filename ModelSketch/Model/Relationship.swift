@@ -14,7 +14,7 @@ import Foundation
 enum RelationshipPriority: Int, Comparable {
 
     case fixed     = 0
-    case userInput = 2
+    case userInput = 1
     
     static func < (lhs: RelationshipPriority, rhs: RelationshipPriority) -> Bool {
         return lhs.rawValue < rhs.rawValue
@@ -57,6 +57,10 @@ class Relationship: Hashable {
     
     func contains(_ node: ConstructionNode) -> Bool {
         return self.nodes.contains(node)
+    }
+    
+    func resetForPropagation() {
+        self.inheritedPriority = nil
     }
 
     func apply() -> Bool {
@@ -150,8 +154,8 @@ class FollowPencilRelationship: AffixRelationship {
 
 class DistanceRelationship: NodeToNodeRelationship {
     
-    let min: Double?
-    let max: Double?
+    var min: Double?
+    var max: Double?
     var equalRelationship: DistanceRelationship?
     
     var distance: Double {
