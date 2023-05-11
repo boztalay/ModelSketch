@@ -32,6 +32,7 @@ class ConstructionNode: Hashable {
     
     init(graph: ConstructionGraph) {
         self.id = ConstructionNode.getNextId()
+        print(self.id)
         self.graph = graph
         self.x = 0.0
         self.y = 0.0
@@ -157,19 +158,19 @@ class ConstructionGraph {
         return node
     }
     
-    func remove(node: ConstructionNode) {
-        guard let index = self.nodes.firstIndex(of: node) else {
+    func remove(node nodeToRemove: ConstructionNode) {
+        guard let index = self.nodes.firstIndex(of: nodeToRemove) else {
             return
         }
         
         self.nodes.remove(at: index)
-        self.connections.removeAll(where: { $0.contains(node) })
+        self.connections.removeAll(where: { $0.contains(nodeToRemove) })
         
         for node in self.nodes {
-            node.removeRelationships(containing: node)
+            node.removeRelationships(containing: nodeToRemove)
         }
         
-        self.relationships.removeAll(where: { $0.contains(node) })
+        self.relationships.removeAll(where: { $0.contains(nodeToRemove) })
     }
     
     func connect(nodeA: ConstructionNode, nodeB: ConstructionNode) {

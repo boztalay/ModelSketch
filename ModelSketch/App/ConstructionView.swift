@@ -162,17 +162,18 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     }
     
     func handleScratchGesture(along points: [CGPoint]) {
+        var nodesToDelete = [ConstructionNode]()
+
         for point in points {
-            var nodesToDelete = [ConstructionNode]()
             for nodeView in self.nodeViews.values {
-                if nodeView.containsPoint(point) {
+                if nodeView.containsPoint(point) && !nodesToDelete.contains(nodeView.node) {
                     nodesToDelete.append(nodeView.node)
                 }
             }
-            
-            for node in nodesToDelete {
-                self.graph.remove(node: node)
-            }
+        }
+        
+        for node in nodesToDelete {
+            self.graph.remove(node: node)
         }
 
         self.update()
