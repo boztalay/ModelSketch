@@ -45,6 +45,10 @@ class ConstructionNode: Hashable {
     
     func addOutgoingRelationship(_ relationship: Relationship) {
         // TODO: Some validation that this relationship involves this node?
+        guard !self.outgoingRelationships.contains(relationship) else {
+            return
+        }
+
         self.outgoingRelationships.append(relationship)
     }
     
@@ -65,7 +69,7 @@ class ConstructionNode: Hashable {
             return true
         }
         
-        return (relationship.priority < lastXRelationshipPriority)
+        return (relationship.inheritedPriority! < lastXRelationshipPriority)
     }
     
     func canSetY(with relationship: Relationship) -> Bool {
@@ -73,7 +77,7 @@ class ConstructionNode: Hashable {
             return true
         }
         
-        return (relationship.priority < lastYRelationshipPriority)
+        return (relationship.inheritedPriority! < lastYRelationshipPriority)
     }
     
     func set(x value: Double, with relationship: Relationship) -> Bool {
@@ -82,7 +86,7 @@ class ConstructionNode: Hashable {
         }
         
         self.x = value
-        self.lastXRelationshipPriority = relationship.priority
+        self.lastXRelationshipPriority = relationship.inheritedPriority!
         
         return true
     }
@@ -93,7 +97,7 @@ class ConstructionNode: Hashable {
         }
         
         self.y = value
-        self.lastYRelationshipPriority = relationship.priority
+        self.lastYRelationshipPriority = relationship.inheritedPriority!
         
         return true
     }
@@ -182,7 +186,6 @@ class ConstructionGraph {
     func add(relationship: Relationship) {
         // TODO: Maybe validate that the relationship contains valid nodes?
         self.relationships.append(relationship)
-        self.relationships.sort(by: { $0.priority > $1.priority })
     }
     
     func remove(relationship: Relationship) {
@@ -199,10 +202,12 @@ class ConstructionGraph {
             node.update()
         }
         
-        for relationship in self.relationships {
-            if relationship.nodeIn == nil {
-                relationship.propagate()
-            }
+        // Sort input relationships by lowest priority first
+        var inputRelationships = self.relationships.filter({ ($0 as? InputRelationship) != nil }).map({ $0 as! InputRelationship })
+        inputRelationships.sort(by: { $0.priority > $1.priority })
+        
+        for relationship in inputRelationships {
+            relationship.propagateWithPriority()
         }
         
         // TODO: This could be more efficient

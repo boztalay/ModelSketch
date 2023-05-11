@@ -14,7 +14,6 @@ import Foundation
 enum RelationshipPriority: Int, Comparable {
 
     case fixed     = 0
-    case normal    = 1
     case userInput = 2
     
     static func < (lhs: RelationshipPriority, rhs: RelationshipPriority) -> Bool {
@@ -33,35 +32,31 @@ class Relationship: Hashable {
     }
 
     let id: Int
-    let nodeIn: ConstructionNode?
-    let nodeOut: ConstructionNode
-    let priority: RelationshipPriority
     let temporary: Bool
+    var nodes: [ConstructionNode]
+    var inheritedPriority: RelationshipPriority?
     
-    init(nodeIn: ConstructionNode?, nodeOut: ConstructionNode, priority: RelationshipPriority, temporary: Bool) {
+    init(temporary: Bool) {
         self.id = Relationship.getNextId()
-        self.nodeIn = nodeIn
-        self.nodeOut = nodeOut
-        self.priority = priority
         self.temporary = temporary
+        self.nodes = []
     }
     
-    func propagate() {
+    func propagate(with priority: RelationshipPriority? = nil) {
+        self.inheritedPriority = priority
+
         if self.apply() {
-            for relationship in self.nodeOut.outgoingRelationships {
-                relationship.propagate()
+            // TODO: Just getting this from nodes.last is a little hacky, could formalize this
+            if let nodeOut = self.nodes.last {
+                for relationship in nodeOut.outgoingRelationships {
+                    relationship.propagate(with: self.inheritedPriority)
+                }
             }
         }
     }
     
     func contains(_ node: ConstructionNode) -> Bool {
-        if let nodeIn = self.nodeIn {
-            if node == nodeIn {
-                return true
-            }
-        }
-        
-        return (node == self.nodeOut)
+        return self.nodes.contains(node)
     }
 
     func apply() -> Bool {
@@ -83,8 +78,20 @@ class Relationship: Hashable {
 
 class InputRelationship: Relationship {
     
+    let priority: RelationshipPriority
+    
+    var node: ConstructionNode {
+        return self.nodes[0]
+    }
+    
     init(node: ConstructionNode, priority: RelationshipPriority, temporary: Bool) {
-        super.init(nodeIn: nil, nodeOut: node, priority: priority, temporary: temporary)
+        self.priority = priority
+        super.init(temporary: temporary)
+        self.nodes.append(node)
+    }
+    
+    func propagateWithPriority() {
+        self.propagate(with: self.priority)
     }
     
     override func removeFromNodes() {
@@ -93,9 +100,19 @@ class InputRelationship: Relationship {
 }
 
 class NodeToNodeRelationship: Relationship {
+    
+    var nodeIn: ConstructionNode {
+        return self.nodes[0]
+    }
+    
+    var nodeOut: ConstructionNode {
+        return self.nodes[1]
+    }
 
-    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode, priority: RelationshipPriority, temporary: Bool) {
-        super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: priority, temporary: temporary)
+    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode, temporary: Bool) {
+        super.init(temporary: temporary)
+        self.nodes.append(nodeIn)
+        self.nodes.append(nodeOut)
     }
 }
 
@@ -118,8 +135,8 @@ class AffixRelationship: InputRelationship {
 
     override func apply() -> Bool {
         // TODO: Use the canSet functions here
-        let couldSetX = self.nodeOut.set(x: self.cgPoint.x, with: self)
-        let couldSetY = self.nodeOut.set(y: self.cgPoint.y, with: self)
+        let couldSetX = self.node.set(x: self.cgPoint.x, with: self)
+        let couldSetY = self.node.set(y: self.cgPoint.y, with: self)
         return (couldSetX || couldSetY)
     }
 }
@@ -135,30 +152,12 @@ class DistanceRelationship: NodeToNodeRelationship {
     
     let min: Double?
     let max: Double?
-    let minRelationship: DistanceRelationship?
-    let maxRelationship: DistanceRelationship?
     
     var distance: Double {
-        return self.nodeIn!.cgPoint.distance(to: self.nodeOut.cgPoint)
+        return self.nodeIn.cgPoint.distance(to: self.nodeOut.cgPoint)
     }
     
-    var minDistance: Double? {
-        return self.minRelationship?.distance ?? self.min
-    }
-    
-    var maxDistance: Double? {
-        return self.maxRelationship?.distance ?? self.max
-    }
-    
-    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode, min: Double? = nil, max: Double? = nil, minRelationship: DistanceRelationship? = nil, maxRelationship: DistanceRelationship? = nil) {
-        guard min == nil || minRelationship == nil else {
-            fatalError("Can't have both min and minRelationship set")
-        }
-        
-        guard max == nil || maxRelationship == nil else {
-            fatalError("Can't have both max and maxRelationship set")
-        }
-        
+    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode, min: Double? = nil, max: Double? = nil) {
         if let min = min, let max = max {
             if min > max {
                 fatalError("min (\(min)) must be less than max (\(max))")
@@ -167,20 +166,10 @@ class DistanceRelationship: NodeToNodeRelationship {
         
         self.min = min
         self.max = max
-        self.minRelationship = minRelationship
-        self.maxRelationship = maxRelationship
 
-        super.init(nodeIn: nodeIn, nodeOut: nodeOut, priority: .normal, temporary: false)
+        super.init(nodeIn: nodeIn, nodeOut: nodeOut, temporary: false)
         
-        self.nodeIn!.addOutgoingRelationship(self)
-        
-        if let minRelationship = self.minRelationship {
-            minRelationship.nodeIn!.addOutgoingRelationship(self)
-        }
-        
-        if let maxRelationship = self.maxRelationship {
-            maxRelationship.nodeIn!.addOutgoingRelationship(self)
-        }
+        self.nodeIn.addOutgoingRelationship(self)
     }
     
     override func apply() -> Bool {
@@ -188,36 +177,27 @@ class DistanceRelationship: NodeToNodeRelationship {
 
         var targetDistance = self.distance
         
-        if let min = self.minDistance, self.distance < min {
+        if let min = self.min, self.distance < min {
             targetDistance = min
         }
         
-        if let max = self.maxDistance, self.distance > max {
+        if let max = self.max, self.distance > max {
             targetDistance = max
         }
         
-        let run = self.nodeOut.cgPoint.x - self.nodeIn!.cgPoint.x
-        let rise = self.nodeOut.cgPoint.y - self.nodeIn!.cgPoint.y
+        let run = self.nodeOut.cgPoint.x - self.nodeIn.cgPoint.x
+        let rise = self.nodeOut.cgPoint.y - self.nodeIn.cgPoint.y
         let angle = atan2(rise, run)
         
         let newRun = targetDistance * cos(angle)
         let newRise = targetDistance * sin(angle)
         
-        let couldSetX = self.nodeOut.set(x: self.nodeIn!.cgPoint.x + newRun, with: self)
-        let couldSetY = self.nodeOut.set(y: self.nodeIn!.cgPoint.y + newRise, with: self)
+        let couldSetX = self.nodeOut.set(x: self.nodeIn.cgPoint.x + newRun, with: self)
+        let couldSetY = self.nodeOut.set(y: self.nodeIn.cgPoint.y + newRise, with: self)
         return (couldSetX || couldSetY)
     }
     
-    
     override func removeFromNodes() {
-        self.nodeIn!.removeRelationship(self)
-        
-        if let minRelationship = self.minRelationship {
-            minRelationship.nodeIn!.removeRelationship(self)
-        }
-        
-        if let maxRelationship = self.maxRelationship {
-            maxRelationship.nodeIn!.removeRelationship(self)
-        }
+        self.nodeIn.removeRelationship(self)
     }
 }

@@ -146,11 +146,12 @@ class MetaDistanceQuantityNode: MetaQuantityNode {
             self.relationshipBA = nil
         }
 
-        let minDistanceQuantityNode = minNode as? MetaDistanceQuantityNode
-        let maxDistanceQuantityNode = maxNode as? MetaDistanceQuantityNode
+//        let minDistanceQuantityNode = minNode as? MetaDistanceQuantityNode
+//        let maxDistanceQuantityNode = maxNode as? MetaDistanceQuantityNode
         
-        self.relationshipAB = DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipAB, maxRelationship: maxDistanceQuantityNode?.relationshipAB)
-        self.relationshipBA = DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipBA, maxRelationship: maxDistanceQuantityNode?.relationshipBA)
+        // TODO: Redo all of this when the underlying Relationship stuff is fixed
+//        self.relationshipAB = DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipAB, maxRelationship: maxDistanceQuantityNode?.relationshipAB)
+//        self.relationshipBA = DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipBA, maxRelationship: maxDistanceQuantityNode?.relationshipBA)
         
         graph.add(relationship: self.relationshipAB!)
         graph.add(relationship: self.relationshipBA!)
