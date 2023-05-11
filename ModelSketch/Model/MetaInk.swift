@@ -78,30 +78,12 @@ class MetaQuantityNode: MetaNode {
 
     var min: Double?
     var max: Double?
-    var minNode: MetaQuantityNode?
-    var maxNode: MetaQuantityNode?
-    
-    var minQuantity: Double? {
-        return self.minNode?.readQuantity() ?? self.min
-    }
+    var equalNode: MetaQuantityNode?
 
-    var maxQuantity: Double? {
-        return self.maxNode?.readQuantity() ?? self.max
-    }
-    
-    init(min: Double? = nil, max: Double? = nil, minNode: MetaQuantityNode? = nil, maxNode: MetaQuantityNode? = nil) {
-        guard min == nil || minNode == nil else {
-            fatalError("MetaQuantityNode can't have both min and minNode set")
-        }
-        
-        guard max == nil || maxNode == nil else {
-            fatalError("MetaQuantityNode can't have both max and maxNode set")
-        }
-        
+    init(min: Double? = nil, max: Double? = nil, equalNode: MetaQuantityNode? = nil) {
         self.min = min
         self.max = max
-        self.minNode = minNode
-        self.maxNode = maxNode
+        self.equalNode = equalNode
 
         super.init()
     }
@@ -122,39 +104,46 @@ class MetaDistanceQuantityNode: MetaQuantityNode {
     var relationshipAB: DistanceRelationship?
     var relationshipBA: DistanceRelationship?
     
-    init(nodeA: ConstructionNode, nodeB: ConstructionNode, min: Double? = nil, max: Double? = nil, minNode: MetaQuantityNode? = nil, maxNode: MetaQuantityNode? = nil) {
+    init(nodeA: ConstructionNode, nodeB: ConstructionNode, min: Double? = nil, max: Double? = nil, equalNode: MetaQuantityNode? = nil) {
         self.nodeA = nodeA
         self.nodeB = nodeB
         self.relationshipAB = nil
         self.relationshipBA = nil
 
-        super.init(min: min, max: max, minNode: minNode, maxNode: maxNode)
+        super.init(min: min, max: max, equalNode: equalNode)
         
-        self.updateRelationships()
+        self.relationshipAB = DistanceRelationship(nodeIn: self.nodeA, nodeOut: self.nodeB, min: self.min, max: self.max)
+        self.relationshipBA = DistanceRelationship(nodeIn: self.nodeB, nodeOut: self.nodeA, min: self.min, max: self.max)
+        let graph = self.nodeA.graph
+        graph.add(relationship: self.relationshipAB!)
+        graph.add(relationship: self.relationshipBA!)
+//        self.updateRelationships()
     }
     
     override func updateRelationships() {
         let graph = self.nodeA.graph
         
-        if let relationshipAB = self.relationshipAB {
-            graph.remove(relationship: relationshipAB)
-            self.relationshipAB = nil
+//        if let relationshipAB = self.relationshipAB {
+//            graph.remove(relationship: relationshipAB)
+//            self.relationshipAB = nil
+//        }
+//
+//        if let relationshipBA = self.relationshipBA {
+//            graph.remove(relationship: relationshipBA)
+//            self.relationshipBA = nil
+//        }
+//
+//        self.relationshipAB = DistanceRelationship(nodeIn: self.nodeA, nodeOut: self.nodeB, min: self.min, max: self.max)
+//        self.relationshipBA = DistanceRelationship(nodeIn: self.nodeB, nodeOut: self.nodeA, min: self.min, max: self.max)
+//        graph.add(relationship: self.relationshipAB!)
+//        graph.add(relationship: self.relationshipBA!)
+        
+        if let equalNode = self.equalNode as? MetaDistanceQuantityNode {
+            self.relationshipAB!.setEqualRelationship(equalNode.relationshipAB!)
+            self.relationshipBA!.setEqualRelationship(equalNode.relationshipBA!)
         }
         
-        if let relationshipBA = self.relationshipBA {
-            graph.remove(relationship: relationshipBA)
-            self.relationshipBA = nil
-        }
-
-//        let minDistanceQuantityNode = minNode as? MetaDistanceQuantityNode
-//        let maxDistanceQuantityNode = maxNode as? MetaDistanceQuantityNode
-        
-        // TODO: Redo all of this when the underlying Relationship stuff is fixed
-//        self.relationshipAB = DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipAB, maxRelationship: maxDistanceQuantityNode?.relationshipAB)
-//        self.relationshipBA = DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: min, max: max, minRelationship: minDistanceQuantityNode?.relationshipBA, maxRelationship: maxDistanceQuantityNode?.relationshipBA)
-        
-        graph.add(relationship: self.relationshipAB!)
-        graph.add(relationship: self.relationshipBA!)
+        graph.update()
     }
     
     override func readQuantity() -> Double {
@@ -177,6 +166,6 @@ class MetaGraph {
     }
     
     func update() {
-        // Anything?
+        self.constructionGraph.update()
     }
 }

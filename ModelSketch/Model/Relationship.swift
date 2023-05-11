@@ -213,5 +213,6 @@ class DistanceRelationship: NodeToNodeRelationship {
     
     override func removeFromNodes() {
         self.nodeIn.removeRelationship(self)
+        self.equalRelationship?.nodeIn.removeRelationship(self)
     }
 }

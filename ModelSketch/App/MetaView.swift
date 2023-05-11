@@ -73,8 +73,6 @@ class MetaNodeView: UIView {
 class MetaDistanceQuantityNodeView: MetaNodeView {
     
     var label: MetaQuanitityLabel!
-    var minTerminalView: MetaTerminalView!
-    var maxTerminalView: MetaTerminalView!
     
     var quantityNode: MetaDistanceQuantityNode {
         return self.node as! MetaDistanceQuantityNode
@@ -91,12 +89,6 @@ class MetaDistanceQuantityNodeView: MetaNodeView {
         self.label.textColor = .systemYellow
         self.label.backgroundColor = .white
         self.label.textAlignment = .center
-        
-        self.minTerminalView = MetaTerminalView()
-        self.addSubview(self.minTerminalView)
-        
-        self.maxTerminalView = MetaTerminalView()
-        self.addSubview(self.maxTerminalView)
     }
     
     override func update(in superview: UIView) {
@@ -122,9 +114,6 @@ class MetaDistanceQuantityNodeView: MetaNodeView {
             y: self.quantityNode.nodeB.y - self.quantityNode.nodeA.y
         )
 
-        self.minTerminalView.center = self.quantityNode.nodeA.cgPoint.adding(delta.scaled(by: 0.25)).subtracting(self.frame.origin)
-        self.maxTerminalView.center = self.quantityNode.nodeA.cgPoint.adding(delta.scaled(by: 0.75)).subtracting(self.frame.origin)
-
         self.setNeedsDisplay()
     }
     
@@ -146,14 +135,6 @@ class MetaDistanceQuantityNodeView: MetaNodeView {
             return self.label
         }
         
-        if self.minTerminalView.containsPoint(location.subtracting(self.frame.origin)) {
-            return self.minTerminalView
-        }
-        
-        if self.maxTerminalView.containsPoint(location.subtracting(self.frame.origin)) {
-            return self.maxTerminalView
-        }
-        
         return nil
     }
     
@@ -168,13 +149,11 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     let constructionView: ConstructionView
     var nodeViews: [MetaNode : MetaNodeView]
     var partialConnection: (UIView, CGPoint)?
-    var connections: [(UIView, UIView)]
     
     init(graph: MetaGraph, constructionView: ConstructionView) {
         self.graph = graph
         self.constructionView = constructionView
         self.nodeViews = [:]
-        self.connections = []
 
         super.init(frame: CGRect.zero)
         
@@ -236,18 +215,15 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                     
                     startNodeView.setHighlightState(.normal)
                 } else if let startQuantityLabel = startView as? MetaQuanitityLabel {
-                    if let endTerminalView = self.getNodeView(at: location) as? MetaTerminalView {
+                    if let endQuantityLabel = self.getNodeView(at: location) as? MetaQuanitityLabel {
                         let startDistanceNodeView = startQuantityLabel.superview as! MetaDistanceQuantityNodeView
+                        let endDistanceNodeView = endQuantityLabel.superview as! MetaDistanceQuantityNodeView
                         
-                        let endDistanceNodeView = endTerminalView.superview as! MetaDistanceQuantityNodeView
-                        if endTerminalView == endDistanceNodeView.minTerminalView {
-                            endDistanceNodeView.quantityNode.minNode = startDistanceNodeView.quantityNode
-                        } else if endTerminalView == endDistanceNodeView.maxTerminalView {
-                            endDistanceNodeView.quantityNode.maxNode = startDistanceNodeView.quantityNode
-                        }
+                        let startNode = startDistanceNodeView.quantityNode
+                        let endNode = endDistanceNodeView.quantityNode
                         
-                        self.connections.append((startQuantityLabel, endTerminalView))
-                        endDistanceNodeView.quantityNode.updateRelationships()
+                        startNode.equalNode = endNode
+                        startNode.updateRelationships()
                     }
                 }
                 
@@ -266,6 +242,8 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     }
     
     func update() {
+        self.graph.update()
+        
         for node in self.graph.nodes {
             if self.nodeViews[node] == nil {
                 let nodeView = MetaNodeView.view(for: node)!
@@ -295,6 +273,7 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
         
         color.set()
         path.lineWidth = lineWidth
+        path.setLineDash([3.0, 3.0], count: 2, phase: 0)
         path.stroke()
     }
     
@@ -317,17 +296,19 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
             }
             
             if let start = start, let end = end {
-                self.drawLine(start: start, end: end, lineWidth: 3.0, color: .systemYellow)
+                self.drawLine(start: start, end: end, lineWidth: 2.0, color: .systemYellow)
             }
         }
         
-        for connection in self.connections {
-            self.drawLine(
-                start: connection.0.center.adding(connection.0.superview!.frame.origin),
-                end: connection.1.center.adding(connection.1.superview!.frame.origin),
-                lineWidth: 3.0,
-                color: .systemYellow
-            )
+        for startNode in self.nodeViews.keys.filter({ ($0 as? MetaDistanceQuantityNode) != nil }).map({ $0 as! MetaDistanceQuantityNode }) {
+            if let endNode = startNode.equalNode as? MetaDistanceQuantityNode {
+                self.drawLine(
+                    start: startNode.cgPoint,
+                    end: endNode.cgPoint,
+                    lineWidth: 2.0,
+                    color: .systemYellow
+                )
+            }
         }
     }
     
