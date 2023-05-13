@@ -34,7 +34,6 @@ class Relationship: Hashable {
     let id: Int
     let temporary: Bool
     var nodes: [ConstructionNode]
-    var inheritedPriority: RelationshipPriority?
     
     init(temporary: Bool) {
         self.id = Relationship.getNextId()
@@ -42,14 +41,12 @@ class Relationship: Hashable {
         self.nodes = []
     }
     
-    func propagate(with priority: RelationshipPriority? = nil) {
-        self.inheritedPriority = priority
-
+    func propagate() {
         if self.apply() {
             // TODO: Just getting this from nodes.last is a little hacky, could formalize this
             if let nodeOut = self.nodes.last {
-                for relationship in nodeOut.outgoingRelationships {
-                    relationship.propagate(with: self.inheritedPriority)
+                for relationship in nodeOut.relationships {
+                    relationship.propagate()
                 }
             }
         }
@@ -58,17 +55,9 @@ class Relationship: Hashable {
     func contains(_ node: ConstructionNode) -> Bool {
         return self.nodes.contains(node)
     }
-    
-    func resetForPropagation() {
-        self.inheritedPriority = nil
-    }
 
     func apply() -> Bool {
         fatalError("apply must be implemented")
-    }
-    
-    func removeFromNodes() {
-        fatalError("removeFromNodes must be implemented")
     }
     
     static func == (lhs: Relationship, rhs: Relationship) -> Bool {
@@ -93,30 +82,32 @@ class InputRelationship: Relationship {
         super.init(temporary: temporary)
         self.nodes.append(node)
     }
-    
-    func propagateWithPriority() {
-        self.propagate(with: self.priority)
-    }
-    
-    override func removeFromNodes() {
-
-    }
 }
 
 class NodeToNodeRelationship: Relationship {
     
-    var nodeIn: ConstructionNode {
+    var nodeA: ConstructionNode {
         return self.nodes[0]
     }
     
-    var nodeOut: ConstructionNode {
+    var nodeB: ConstructionNode {
         return self.nodes[1]
     }
 
-    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode, temporary: Bool) {
+    init(nodeA: ConstructionNode, nodeB: ConstructionNode, temporary: Bool) {
         super.init(temporary: temporary)
-        self.nodes.append(nodeIn)
-        self.nodes.append(nodeOut)
+        self.nodes.append(nodeA)
+        self.nodes.append(nodeB)
+        
+        for node in self.nodes {
+            node.addRelationship(self)
+        }
+    }
+
+    func removeFromNodes() {
+        for node in self.nodes {
+            node.removeRelationship(self)
+        }
     }
 }
 
@@ -138,9 +129,9 @@ class AffixRelationship: InputRelationship {
     }
 
     override func apply() -> Bool {
-        // TODO: Use the canSet functions here
-        let couldSetX = self.node.set(x: self.cgPoint.x, with: self)
-        let couldSetY = self.node.set(y: self.cgPoint.y, with: self)
+        // TODO: Use the canSet functions here?
+        let couldSetX = self.node.set(x: self.cgPoint.x)
+        let couldSetY = self.node.set(y: self.cgPoint.y)
         return (couldSetX || couldSetY)
     }
 }
@@ -156,13 +147,12 @@ class DistanceRelationship: NodeToNodeRelationship {
     
     var min: Double?
     var max: Double?
-    var equalRelationship: DistanceRelationship?
     
     var distance: Double {
-        return self.nodeIn.cgPoint.distance(to: self.nodeOut.cgPoint)
+        return self.nodeA.cgPoint.distance(to: self.nodeB.cgPoint)
     }
     
-    init(nodeIn: ConstructionNode, nodeOut: ConstructionNode, min: Double? = nil, max: Double? = nil) {
+    init(nodeA: ConstructionNode, nodeB: ConstructionNode, min: Double? = nil, max: Double? = nil) {
         if let min = min, let max = max {
             if min > max {
                 fatalError("min (\(min)) must be less than max (\(max))")
@@ -172,47 +162,31 @@ class DistanceRelationship: NodeToNodeRelationship {
         self.min = min
         self.max = max
 
-        super.init(nodeIn: nodeIn, nodeOut: nodeOut, temporary: false)
-        
-        self.nodeIn.addOutgoingRelationship(self)
-    }
-    
-    func setEqualRelationship(_ other: DistanceRelationship) {
-        self.equalRelationship = other
-        self.equalRelationship!.nodeIn.addOutgoingRelationship(self)
+        super.init(nodeA: nodeA, nodeB: nodeB, temporary: false)
     }
     
     override func apply() -> Bool {
-        // TODO: Use the canSet functions here
+        // TODO: Use the canSet functions here?
 
         var targetDistance = self.distance
         
-        if let equalRelationship = self.equalRelationship, equalRelationship.inheritedPriority != nil {
-            targetDistance = equalRelationship.distance
-        } else {
-            if let min = self.min, self.distance < min {
-                targetDistance = min
-            }
-            
-            if let max = self.max, self.distance > max {
-                targetDistance = max
-            }
+        if let min = self.min, self.distance < min {
+            targetDistance = min
         }
         
-        let run = self.nodeOut.cgPoint.x - self.nodeIn.cgPoint.x
-        let rise = self.nodeOut.cgPoint.y - self.nodeIn.cgPoint.y
+        if let max = self.max, self.distance > max {
+            targetDistance = max
+        }
+        
+        let run = self.nodeB.cgPoint.x - self.nodeA.cgPoint.x
+        let rise = self.nodeB.cgPoint.y - self.nodeA.cgPoint.y
         let angle = atan2(rise, run)
         
         let newRun = targetDistance * cos(angle)
         let newRise = targetDistance * sin(angle)
         
-        let couldSetX = self.nodeOut.set(x: self.nodeIn.cgPoint.x + newRun, with: self)
-        let couldSetY = self.nodeOut.set(y: self.nodeIn.cgPoint.y + newRise, with: self)
+        let couldSetX = self.nodeB.set(x: self.nodeA.cgPoint.x + newRun)
+        let couldSetY = self.nodeB.set(y: self.nodeA.cgPoint.y + newRise)
         return (couldSetX || couldSetY)
-    }
-    
-    override func removeFromNodes() {
-        self.nodeIn.removeRelationship(self)
-        self.equalRelationship?.nodeIn.removeRelationship(self)
     }
 }

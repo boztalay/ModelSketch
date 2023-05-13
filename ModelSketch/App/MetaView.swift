@@ -108,11 +108,6 @@ class MetaDistanceQuantityNodeView: MetaNodeView {
         self.label.layer.cornerRadius = self.label.frame.height / 3.0
         self.label.layer.masksToBounds = true
         self.label.center = self.center.subtracting(self.frame.origin)
-        
-        let delta = CGPoint(
-            x: self.quantityNode.nodeB.x - self.quantityNode.nodeA.x,
-            y: self.quantityNode.nodeB.y - self.quantityNode.nodeA.y
-        )
 
         self.setNeedsDisplay()
     }
@@ -205,6 +200,7 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
         
         if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
             if gestureRecognizer.isHardPress {
+                /*
                 let startView = self.partialConnection?.0
                 
                 if let startNodeView = startView as? ConstructionNodeView {
@@ -226,6 +222,7 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                         startNode.updateRelationships()
                     }
                 }
+                 */
                 
                 self.partialConnection = nil
                 self.update()
@@ -297,17 +294,6 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
             
             if let start = start, let end = end {
                 self.drawLine(start: start, end: end, lineWidth: 2.0, color: .systemYellow)
-            }
-        }
-        
-        for startNode in self.nodeViews.keys.filter({ ($0 as? MetaDistanceQuantityNode) != nil }).map({ $0 as! MetaDistanceQuantityNode }) {
-            if let endNode = startNode.equalNode as? MetaDistanceQuantityNode {
-                self.drawLine(
-                    start: startNode.cgPoint,
-                    end: endNode.cgPoint,
-                    lineWidth: 2.0,
-                    color: .systemYellow
-                )
             }
         }
     }
