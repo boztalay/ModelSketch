@@ -70,17 +70,52 @@ class ConstructionNode: Hashable {
         return self.relationships.map({ $0.isSatisfied() }).reduce(true, { $0 && $1 })
     }
     
-    func resolveRelationships() {
-        while !self.areAllRelationshipsSatisfied() {
-            for relationship in self.relationships {
-                if !relationship.isSatisfied() {
-                    relationship.apply()
-                }
-            }
+    func closestIntersection(of distanceRelationships: [DistanceRelationship]) -> CGPoint? {
+        guard distanceRelationships.count > 0 else {
+            print("    no distance relationships")
+            return nil
         }
         
-        guard !self.graph.areAllNodeToNodeRelationshipsSatisfied() else {
+        guard distanceRelationships.count > 1 else {
+            print("    one distance relationship")
+            let relationship = distanceRelationships.first!
+            return relationship.closestPointTo(self)
+        }
+        
+        
+        print("    two distance relationships")
+        
+        var intersectionPoints = distanceRelationships[0].intersections(with: distanceRelationships[1])
+        guard intersectionPoints.count > 0 else {
+            var distanceRelationship = distanceRelationships.first(where: { !$0.getOtherNode(self).canMove() })
+            if distanceRelationship == nil {
+                distanceRelationship = distanceRelationships.sorted(by: { $0.error > $1.error }).first!
+            }
+            print("    no intersections found, using relationship with node \(distanceRelationship!.getOtherNode(self).id)")
+            return distanceRelationship!.closestPointTo(self)
+        }
+        
+        print("    at least one intersection point found, choosing the closest")
+        
+        intersectionPoints.sort(by: { $0.distance(to: self.cgPoint) < $1.distance(to: self.cgPoint) })
+        return intersectionPoints.first!
+    }
+    
+    func resolveRelationships() {
+        print("Node \(self.id):")
+        guard !self.areAllRelationshipsSatisfied() else {
+            print("    all relationships satisfied")
             return
+        }
+        
+        if self.canMove() {
+            let distanceRelationships = self.relationships.filter({ $0 as? DistanceRelationship != nil }).map({ $0 as! DistanceRelationship })
+            if let point = self.closestIntersection(of: distanceRelationships) {
+                print("    moving to (\(point.x), \(point.y)")
+                self.move(to: point)
+            }
+        } else {
+            print("    can't move")
         }
 
         for relationship in self.relationships {
@@ -233,6 +268,8 @@ class ConstructionGraph {
                 node.resetForPropagation()
             }
             
+            print("")
+            print("Propagating input relationship")
             inputRelationship.propagate()
         }
         

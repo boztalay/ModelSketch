@@ -166,8 +166,8 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                     self.graph.connect(nodeA: nodeView.node, nodeB: endNodeView.node)
 
                     // TODO: Just for testing
-//                    let distance = nodeView.node.cgPoint.distance(to: endNodeView.node.cgPoint)
-//                    self.graph.add(nodeToNodeRelationship: DistanceRelationship(nodeA: nodeView.node, nodeB: endNodeView.node, min: distance, max: distance))
+                    let distance = nodeView.node.cgPoint.distance(to: endNodeView.node.cgPoint)
+                    self.graph.add(nodeToNodeRelationship: DistanceRelationship(nodeA: nodeView.node, nodeB: endNodeView.node, min: distance, max: distance))
                 }
                 
                 nodeView.setHighlightState(.normal)
