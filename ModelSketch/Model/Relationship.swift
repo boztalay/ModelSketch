@@ -41,23 +41,12 @@ class Relationship: Hashable {
         self.nodes = []
     }
     
-    func propagate() {
-        if self.apply() {
-            // TODO: Just getting this from nodes.last is a little hacky, could formalize this
-            if let nodeOut = self.nodes.last {
-                for relationship in nodeOut.relationships {
-                    relationship.propagate()
-                }
-            }
-        }
+    func apply() {
+        fatalError("apply must be implemented")
     }
     
     func contains(_ node: ConstructionNode) -> Bool {
         return self.nodes.contains(node)
-    }
-
-    func apply() -> Bool {
-        fatalError("apply must be implemented")
     }
     
     static func == (lhs: Relationship, rhs: Relationship) -> Bool {
@@ -82,6 +71,11 @@ class InputRelationship: Relationship {
         super.init(temporary: temporary)
         self.nodes.append(node)
     }
+    
+    func propagate() {
+        self.apply()
+        self.node.resolveRelationships()
+    }
 }
 
 class NodeToNodeRelationship: Relationship {
@@ -100,13 +94,28 @@ class NodeToNodeRelationship: Relationship {
         self.nodes.append(nodeB)
         
         for node in self.nodes {
-            node.addRelationship(self)
+            node.add(relationship: self)
+        }
+    }
+    
+    func isSatisfied() -> Bool {
+        fatalError("isSatisfied must be implemented")
+    }
+    
+    func getOtherNode(_ node: ConstructionNode) -> ConstructionNode {
+        if node == self.nodeA {
+            return self.nodeB
+        } else if node == self.nodeB {
+            return self.nodeA
+        } else {
+            // TODO: Something more productive here
+            fatalError()
         }
     }
 
     func removeFromNodes() {
         for node in self.nodes {
-            node.removeRelationship(self)
+            node.remove(relationship: self)
         }
     }
 }
@@ -128,11 +137,8 @@ class AffixRelationship: InputRelationship {
         self.init(node: node, cgPoint: cgPoint, priority: .fixed, temporary: false)
     }
 
-    override func apply() -> Bool {
-        // TODO: Use the canSet functions here?
-        let couldSetX = self.node.set(x: self.cgPoint.x)
-        let couldSetY = self.node.set(y: self.cgPoint.y)
-        return (couldSetX || couldSetY)
+    override func apply() {
+        self.node.fix(position: self.cgPoint)
     }
 }
 
@@ -165,9 +171,19 @@ class DistanceRelationship: NodeToNodeRelationship {
         super.init(nodeA: nodeA, nodeB: nodeB, temporary: false)
     }
     
-    override func apply() -> Bool {
-        // TODO: Use the canSet functions here?
+    override func isSatisfied() -> Bool {
+        if let min = self.min, self.distance < min {
+            return false
+        }
+        
+        if let max = self.max, self.distance > max {
+            return false
+        }
+        
+        return true
+    }
 
+    override func apply() {
         var targetDistance = self.distance
         
         if let min = self.min, self.distance < min {
@@ -178,15 +194,26 @@ class DistanceRelationship: NodeToNodeRelationship {
             targetDistance = max
         }
         
-        let run = self.nodeB.cgPoint.x - self.nodeA.cgPoint.x
-        let rise = self.nodeB.cgPoint.y - self.nodeA.cgPoint.y
+        var startNode = self.nodeA
+        var endNode = self.nodeB
+        
+        if !startNode.canMove() {
+            let temp = startNode
+            startNode = endNode
+            endNode = temp
+        }
+        
+        guard startNode.canMove() else {
+            // TODO: Something more productive here
+            fatalError()
+        }
+        
+        let run = endNode.cgPoint.x - startNode.cgPoint.x
+        let rise = endNode.cgPoint.y - startNode.cgPoint.y
         let angle = atan2(rise, run)
         
         let newRun = targetDistance * cos(angle)
         let newRise = targetDistance * sin(angle)
-        
-        let couldSetX = self.nodeB.set(x: self.nodeA.cgPoint.x + newRun)
-        let couldSetY = self.nodeB.set(y: self.nodeA.cgPoint.y + newRise)
-        return (couldSetX || couldSetY)
+        endNode.move(to: CGPoint(x: startNode.cgPoint.x + newRun, y: startNode.cgPoint.y + newRise))
     }
 }

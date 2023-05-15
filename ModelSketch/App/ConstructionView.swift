@@ -28,6 +28,7 @@ class ConstructionNodeView: UIView {
     
     static let radius = 7.0
     static let touchTargetScale = 1.5
+    static let lineWidth = 3.0
 
     let node: ConstructionNode
     var highlightState: HighlightState
@@ -38,30 +39,28 @@ class ConstructionNodeView: UIView {
         
         super.init(frame: CGRect.zero)
         
-        self.backgroundColor = .white
+        self.backgroundColor = .clear
         self.setHighlightState(self.highlightState)
     }
     
     func setHighlightState(_ highlightState: HighlightState) {
         self.highlightState = highlightState
-        self.layer.borderColor = self.highlightState.color.cgColor
+        self.setNeedsDisplay()
     }
     
     func update(in superview: UIView) {
+        let frameRadius = ConstructionNodeView.radius + ConstructionNodeView.lineWidth
+        
         self.frame = CGRect(
             origin: CGPoint(
-                x: self.node.x - ConstructionNodeView.radius,
-                y: self.node.y - ConstructionNodeView.radius
+                x: self.node.x - frameRadius,
+                y: self.node.y - frameRadius
             ),
             size: CGSize(
-                width: ConstructionNodeView.radius * 2.0,
-                height: ConstructionNodeView.radius * 2.0
+                width: frameRadius * 2.0,
+                height: frameRadius * 2.0
             )
         )
-        
-        self.layer.cornerRadius = ConstructionNodeView.radius
-        self.layer.borderColor = self.highlightState.color.cgColor
-        self.layer.borderWidth = 3.0
         
         if self.superview != superview {
             self.removeFromSuperview()
@@ -69,6 +68,26 @@ class ConstructionNodeView: UIView {
         }
         
         self.superview!.setNeedsDisplay()
+        self.setNeedsDisplay()
+    }
+    
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        
+        let circlePath = UIBezierPath(
+            ovalIn: CGRect(
+                x: (self.frame.width / 2.0) - ConstructionNodeView.radius,
+                y: (self.frame.height / 2.0) - ConstructionNodeView.radius,
+                width: 2.0 * ConstructionNodeView.radius,
+                height: 2.0 * ConstructionNodeView.radius
+            )
+        )
+
+        self.highlightState.color.setStroke()
+        UIColor.white.setFill()
+        circlePath.lineWidth = ConstructionNodeView.lineWidth
+        circlePath.fill()
+        circlePath.stroke()
     }
     
     func containsPoint(_ point: CGPoint) -> Bool {
@@ -147,8 +166,8 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                     self.graph.connect(nodeA: nodeView.node, nodeB: endNodeView.node)
 
                     // TODO: Just for testing
-                    let distance = nodeView.node.cgPoint.distance(to: endNodeView.node.cgPoint)
-                    self.graph.add(nodeToNodeRelationship: DistanceRelationship(nodeA: nodeView.node, nodeB: endNodeView.node, min: distance, max: distance))
+//                    let distance = nodeView.node.cgPoint.distance(to: endNodeView.node.cgPoint)
+//                    self.graph.add(nodeToNodeRelationship: DistanceRelationship(nodeA: nodeView.node, nodeB: endNodeView.node, min: distance, max: distance))
                 }
                 
                 nodeView.setHighlightState(.normal)

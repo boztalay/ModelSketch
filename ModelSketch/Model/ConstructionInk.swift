@@ -23,6 +23,8 @@ class ConstructionNode: Hashable {
     private(set) var y: Double
     private(set) var relationships: [NodeToNodeRelationship]
     
+    private var isPositionFixed: Bool
+    
     var cgPoint: CGPoint {
         return CGPoint(x: self.x, y: self.y)
     }
@@ -33,9 +35,14 @@ class ConstructionNode: Hashable {
         self.x = 0.0
         self.y = 0.0
         self.relationships = []
+        self.isPositionFixed = false
     }
     
-    func addRelationship(_ relationship: NodeToNodeRelationship) {
+    func resetForPropagation() {
+        self.isPositionFixed = false
+    }
+    
+    func add(relationship: NodeToNodeRelationship) {
         guard relationship.contains(self) else {
             return
         }
@@ -47,7 +54,7 @@ class ConstructionNode: Hashable {
         self.relationships.append(relationship)
     }
     
-    func removeRelationship(_ relationship: NodeToNodeRelationship) {
+    func remove(relationship: NodeToNodeRelationship) {
         guard let index = self.relationships.firstIndex(of: relationship) else {
             return
         }
@@ -59,18 +66,46 @@ class ConstructionNode: Hashable {
         self.relationships.removeAll(where: { $0.contains(other) })
     }
     
-    func set(x value: Double) -> Bool {
-        // TODO: Check if it's already been set for this propagation round
-        // TODO: Also reset that flag before each input relationship gets propagated
-        self.x = value
-        return true
+    func areAllRelationshipsSatisfied() -> Bool {
+        return self.relationships.map({ $0.isSatisfied() }).reduce(true, { $0 && $1 })
     }
     
-    func set(y value: Double) -> Bool {
-        // TODO: Check if it's already been set for this propagation round
-        // TODO: Also reset that flag before each input relationship gets propagated
-        self.y = value
-        return true
+    func resolveRelationships() {
+        while !self.areAllRelationshipsSatisfied() {
+            for relationship in self.relationships {
+                if !relationship.isSatisfied() {
+                    relationship.apply()
+                }
+            }
+        }
+        
+        guard !self.graph.areAllNodeToNodeRelationshipsSatisfied() else {
+            return
+        }
+
+        for relationship in self.relationships {
+            let otherNode = relationship.getOtherNode(self)
+            otherNode.resolveRelationships()
+        }
+    }
+    
+    func fix(position: CGPoint) {
+        self.move(to: position)
+        self.isPositionFixed = true
+    }
+    
+    func canMove() -> Bool {
+        return !self.isPositionFixed
+    }
+    
+    func move(to position: CGPoint) {
+        guard self.canMove() else {
+            // TODO: Something more productive here
+            fatalError()
+        }
+        
+        self.x = position.x
+        self.y = position.y
     }
     
     static func == (lhs: ConstructionNode, rhs: ConstructionNode) -> Bool {
@@ -188,8 +223,16 @@ class ConstructionGraph {
         self.nodeToNodeRelationships.remove(at: index)
     }
     
+    func areAllNodeToNodeRelationshipsSatisfied() -> Bool {
+        return self.nodeToNodeRelationships.map({ $0.isSatisfied() }).reduce(true, { $0 && $1 })
+    }
+    
     func update() {
         for inputRelationship in self.inputRelationships {
+            for node in self.nodes {
+                node.resetForPropagation()
+            }
+            
             inputRelationship.propagate()
         }
         

@@ -187,8 +187,11 @@ class PencilStroke {
         guard let image = self.renderImage() else {
             return nil
         }
+        
+        guard let prediction = try? PencilStroke.model.prediction(image: image.pixelBuffer()!) else {
+            return nil
+        }
 
-        let prediction = try! PencilStroke.model.prediction(image: image.pixelBuffer()!)
         let gestureClass = PencilGesture(rawValue: prediction.classLabel)!
         
         let gestureProbability = prediction.classLabelProbs[gestureClass.rawValue]!
