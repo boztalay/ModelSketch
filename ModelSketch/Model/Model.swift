@@ -19,7 +19,11 @@ class Model {
         var nodes = [ConstructionNode]()
         for i in 0 ..< 10 {
             let node = self.constructionGraph.createNode()
-            self.constructionGraph.add(inputRelationship: FollowPencilRelationship(node: node, cgPoint: CGPoint(x: 200.0 + (CGFloat(i) * 50.0), y: 300.0)))
+            if i == 0 {
+                self.constructionGraph.add(inputRelationship: AffixRelationship(node: node, cgPoint: CGPoint(x: 200.0 + (CGFloat(i) * 50.0), y: 300.0)))
+            } else {
+                self.constructionGraph.add(inputRelationship: FollowPencilRelationship(node: node, cgPoint: CGPoint(x: 200.0 + (CGFloat(i) * 50.0), y: 300.0)))
+            }
             nodes.append(node)
         }
         

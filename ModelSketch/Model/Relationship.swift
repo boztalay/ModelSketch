@@ -76,10 +76,10 @@ class InputRelationship: Relationship {
         self.apply()
 
         let relationships = self.gatherAllRelationships(from: self.node)
-        
+
         var iterations = 0
         while !self.areAllSatisfied(relationships) {
-            for relationship in relationships {
+            for relationship in relationships.filter({ !$0.isSatisfied() }).map({ $0 as! DistanceRelationship }).sorted(by: { $0.getError() > $1.getError() }) {
                 relationship.apply()
             }
             iterations += 1
@@ -185,8 +185,8 @@ class FollowPencilRelationship: AffixRelationship {
 
 class DistanceRelationship: NodeToNodeRelationship {
     
-    static let epsilon = 0.001
-    static let errorProportionPerApplication = 0.25
+    static let epsilon = 0.05
+    static let errorProportionPerApplication = 0.90
     
     var min: Double?
     var max: Double?
@@ -218,6 +218,20 @@ class DistanceRelationship: NodeToNodeRelationship {
         }
         
         return true
+    }
+    
+    func getError() -> Double {
+        var targetDistance = self.distance
+        
+        if let min = self.min, self.distance < min {
+            targetDistance = min
+        }
+        
+        if let max = self.max, self.distance > max {
+            targetDistance = max
+        }
+        
+        return targetDistance - self.distance
     }
     
     override func apply() {
