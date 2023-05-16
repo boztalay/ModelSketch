@@ -24,6 +24,7 @@ class ConstructionNode: Hashable {
     private(set) var relationships: [NodeToNodeRelationship]
     
     private var isPositionFixed: Bool
+    private(set) var moveCount: Int
     
     var cgPoint: CGPoint {
         return CGPoint(x: self.x, y: self.y)
@@ -36,10 +37,12 @@ class ConstructionNode: Hashable {
         self.y = 0.0
         self.relationships = []
         self.isPositionFixed = false
+        self.moveCount = 0
     }
     
     func resetForPropagation() {
         self.isPositionFixed = false
+        self.moveCount = 0
     }
     
     func add(relationship: NodeToNodeRelationship) {
@@ -70,60 +73,6 @@ class ConstructionNode: Hashable {
         return self.relationships.map({ $0.isSatisfied() }).reduce(true, { $0 && $1 })
     }
     
-    func closestIntersection(of distanceRelationships: [DistanceRelationship]) -> CGPoint? {
-        guard distanceRelationships.count > 0 else {
-            print("    no distance relationships")
-            return nil
-        }
-        
-        guard distanceRelationships.count > 1 else {
-            print("    one distance relationship")
-            let relationship = distanceRelationships.first!
-            return relationship.closestPointTo(self)
-        }
-        
-        
-        print("    two distance relationships")
-        
-        var intersectionPoints = distanceRelationships[0].intersections(with: distanceRelationships[1])
-        guard intersectionPoints.count > 0 else {
-            var distanceRelationship = distanceRelationships.first(where: { !$0.getOtherNode(self).canMove() })
-            if distanceRelationship == nil {
-                distanceRelationship = distanceRelationships.sorted(by: { $0.error > $1.error }).first!
-            }
-            print("    no intersections found, using relationship with node \(distanceRelationship!.getOtherNode(self).id)")
-            return distanceRelationship!.closestPointTo(self)
-        }
-        
-        print("    at least one intersection point found, choosing the closest")
-        
-        intersectionPoints.sort(by: { $0.distance(to: self.cgPoint) < $1.distance(to: self.cgPoint) })
-        return intersectionPoints.first!
-    }
-    
-    func resolveRelationships() {
-        print("Node \(self.id):")
-        guard !self.areAllRelationshipsSatisfied() else {
-            print("    all relationships satisfied")
-            return
-        }
-        
-        if self.canMove() {
-            let distanceRelationships = self.relationships.filter({ $0 as? DistanceRelationship != nil }).map({ $0 as! DistanceRelationship })
-            if let point = self.closestIntersection(of: distanceRelationships) {
-                print("    moving to (\(point.x), \(point.y)")
-                self.move(to: point)
-            }
-        } else {
-            print("    can't move")
-        }
-
-        for relationship in self.relationships {
-            let otherNode = relationship.getOtherNode(self)
-            otherNode.resolveRelationships()
-        }
-    }
-    
     func fix(position: CGPoint) {
         self.move(to: position)
         self.isPositionFixed = true
@@ -141,6 +90,7 @@ class ConstructionNode: Hashable {
         
         self.x = position.x
         self.y = position.y
+        self.moveCount += 1
     }
     
     static func == (lhs: ConstructionNode, rhs: ConstructionNode) -> Bool {
@@ -267,9 +217,7 @@ class ConstructionGraph {
             for node in self.nodes {
                 node.resetForPropagation()
             }
-            
-            print("")
-            print("Propagating input relationship")
+
             inputRelationship.propagate()
         }
         

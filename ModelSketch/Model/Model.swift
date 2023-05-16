@@ -15,12 +15,21 @@ class Model {
     init() {
         self.constructionGraph = ConstructionGraph()
         self.metaGraph = MetaGraph(constructionGraph: self.constructionGraph)
-        
+
+        var nodes = [ConstructionNode]()
         for i in 0 ..< 10 {
             let node = self.constructionGraph.createNode()
             self.constructionGraph.add(inputRelationship: FollowPencilRelationship(node: node, cgPoint: CGPoint(x: 200.0 + (CGFloat(i) * 50.0), y: 300.0)))
+            nodes.append(node)
         }
         
+        self.constructionGraph.update()
+        
+        for i in 0 ..< (nodes.count - 1) {
+            self.constructionGraph.connect(nodeA: nodes[i], nodeB: nodes[i + 1])
+            self.constructionGraph.add(nodeToNodeRelationship: DistanceRelationship(nodeA: nodes[i], nodeB: nodes[i + 1], min: 50.0, max: 50.0))
+        }
+
         self.update()
     }
     
