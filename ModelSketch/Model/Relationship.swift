@@ -71,45 +71,6 @@ class InputRelationship: Relationship {
         super.init(temporary: temporary)
         self.nodes.append(node)
     }
-    
-    func propagate() {
-        self.apply()
-
-        let relationships = self.gatherAllRelationships(from: self.node)
-
-        var iterations = 0
-        while !self.areAllSatisfied(relationships) {
-            for relationship in relationships.filter({ !$0.isSatisfied() }).map({ $0 as! DistanceRelationship }).sorted(by: { $0.getError() > $1.getError() }) {
-                relationship.apply()
-            }
-            iterations += 1
-        }
-        print("\(iterations) iterations")
-    }
-    
-    private func gatherAllRelationships(from node: ConstructionNode, existingRelationships: Set<NodeToNodeRelationship>? = nil) -> Set<NodeToNodeRelationship> {
-        var relationships = Set<NodeToNodeRelationship>()
-        
-        if let existingRelationships = existingRelationships {
-            relationships.formUnion(existingRelationships)
-        }
-        
-        for relationship in node.relationships {
-            guard !relationships.contains(relationship) else {
-                continue
-            }
-
-            relationships.insert(relationship)
-            let otherNode = relationship.getOtherNode(node)
-            relationships.formUnion(self.gatherAllRelationships(from: otherNode, existingRelationships: relationships))
-        }
-        
-        return relationships
-    }
-    
-    private func areAllSatisfied(_ relationships: Set<NodeToNodeRelationship>) -> Bool {
-        return relationships.map({ $0.isSatisfied() }).reduce(true, { $0 && $1 })
-    }
 }
 
 class NodeToNodeRelationship: Relationship {
@@ -172,7 +133,7 @@ class AffixRelationship: InputRelationship {
     }
 
     override func apply() {
-        self.node.fix(position: self.cgPoint)
+        self.node.fix(to: self.cgPoint, with: self.priority)
     }
 }
 
@@ -185,8 +146,8 @@ class FollowPencilRelationship: AffixRelationship {
 
 class DistanceRelationship: NodeToNodeRelationship {
     
-    static let epsilon = 0.05
-    static let errorProportionPerApplication = 0.90
+    static let epsilon = 0.1
+    static let errorProportionPerApplication = 0.20
     
     var min: Double?
     var max: Double?
@@ -245,19 +206,9 @@ class DistanceRelationship: NodeToNodeRelationship {
             targetDistance = max
         }
         
-        var startNode = self.nodeA
-        var endNode = self.nodeB
-        
-        if !endNode.canMove() || ((startNode.moveCount < endNode.moveCount) && startNode.canMove()) {
-            let temp = startNode
-            startNode = endNode
-            endNode = temp
-        }
-        
-        guard endNode.canMove() else {
-            // TODO: Something more productive here
-            fatalError()
-        }
+        let sortedNodes = self.nodes.sorted(by: { $0.shouldBeMovedBefore($1) })
+        let endNode = sortedNodes[0]
+        let startNode = sortedNodes[1]
         
         let run = endNode.cgPoint.x - startNode.cgPoint.x
         let rise = endNode.cgPoint.y - startNode.cgPoint.y
@@ -267,6 +218,8 @@ class DistanceRelationship: NodeToNodeRelationship {
         let distanceToApply = (error * DistanceRelationship.errorProportionPerApplication) + self.distance
         let newRun = distanceToApply * cos(angle)
         let newRise = distanceToApply * sin(angle)
+        
+        print("moving node \(endNode.id) from \(startNode.id) (error \(error))")
         
         endNode.move(to: CGPoint(x: startNode.cgPoint.x + newRun, y: startNode.cgPoint.y + newRise))
     }

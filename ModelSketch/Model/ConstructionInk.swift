@@ -22,9 +22,9 @@ class ConstructionNode: Hashable {
     private(set) var x: Double
     private(set) var y: Double
     private(set) var relationships: [NodeToNodeRelationship]
-    
-    private var isPositionFixed: Bool
+
     private(set) var moveCount: Int
+    private(set) var inputPriority: RelationshipPriority?
     
     var cgPoint: CGPoint {
         return CGPoint(x: self.x, y: self.y)
@@ -36,13 +36,12 @@ class ConstructionNode: Hashable {
         self.x = 0.0
         self.y = 0.0
         self.relationships = []
-        self.isPositionFixed = false
         self.moveCount = 0
     }
     
     func resetForPropagation() {
-        self.isPositionFixed = false
         self.moveCount = 0
+        self.inputPriority = nil
     }
     
     func add(relationship: NodeToNodeRelationship) {
@@ -73,24 +72,42 @@ class ConstructionNode: Hashable {
         return self.relationships.map({ $0.isSatisfied() }).reduce(true, { $0 && $1 })
     }
     
-    func fix(position: CGPoint) {
+    func fix(to position: CGPoint, with priority: RelationshipPriority) {
         self.move(to: position)
-        self.isPositionFixed = true
-    }
-    
-    func canMove() -> Bool {
-        return !self.isPositionFixed
+        self.inputPriority = priority
     }
     
     func move(to position: CGPoint) {
-        guard self.canMove() else {
-            // TODO: Something more productive here
-            fatalError()
-        }
-        
         self.x = position.x
         self.y = position.y
         self.moveCount += 1
+    }
+    
+    func shouldBeMovedBefore(_ other: ConstructionNode) -> Bool {
+        if self.inputPriority == nil && other.inputPriority == nil {
+            return self.moveCount < other.moveCount
+        }
+        
+        if self.inputPriority != nil && other.inputPriority == nil {
+            return false
+        }
+        
+        if self.inputPriority == nil && other.inputPriority != nil {
+            return true
+        }
+        
+        let selfPriority = self.inputPriority!
+        let otherPriority = other.inputPriority!
+        
+        if selfPriority < otherPriority {
+            return true
+        }
+        
+        if otherPriority > selfPriority {
+            return false
+        }
+        
+        return self.moveCount < other.moveCount
     }
     
     static func == (lhs: ConstructionNode, rhs: ConstructionNode) -> Bool {
@@ -213,13 +230,25 @@ class ConstructionGraph {
     }
     
     func update() {
-        for inputRelationship in self.inputRelationships {
-            for node in self.nodes {
-                node.resetForPropagation()
-            }
-
-            inputRelationship.propagate()
+        for node in self.nodes {
+            node.resetForPropagation()
         }
+        
+        for inputRelationship in self.inputRelationships {
+            inputRelationship.apply()
+        }
+        
+        var iterations = 0
+        while !self.areAllNodeToNodeRelationshipsSatisfied() {
+            let relationship = self.nodeToNodeRelationships.filter({ !$0.isSatisfied() }).map({ $0 as! DistanceRelationship }).sorted(by: { $0.getError() > $1.getError() }).first!
+            relationship.apply()
+            
+//            for relationship in self.nodeToNodeRelationships.filter({ !$0.isSatisfied() }).map({ $0 as! DistanceRelationship }).sorted(by: { $0.getError() > $1.getError() }) {
+//                relationship.apply()
+//            }
+            iterations += 1
+        }
+        print("\(iterations) iterations")
         
         self.inputRelationships.removeAll(where: { $0.temporary })
     }
