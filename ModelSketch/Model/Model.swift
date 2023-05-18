@@ -30,6 +30,7 @@ class Model {
         self.constructionGraph.add(relationship: FollowPencilRelationship(node: nodeD, cgPoint: CGPoint(x: 600.0, y: 300.0)))
         self.update()
         
+        /*
         let abDistance = DistanceRelationship(nodeIn: nodeA, nodeOut: nodeB, min: 100, max: 100)
         let baDistance = DistanceRelationship(nodeIn: nodeB, nodeOut: nodeA, min: 100, max: 100)
         let bcDistance = DistanceRelationship(nodeIn: nodeB, nodeOut: nodeC, min: 100, max: 100)
@@ -43,7 +44,9 @@ class Model {
         self.constructionGraph.add(relationship: cdDistance)
         self.constructionGraph.add(relationship: dcDistance)
         self.update()
+         */
     
+        /*
         let nodeE = self.constructionGraph.createNode()
         let nodeF = self.constructionGraph.createNode()
         let nodeG = self.constructionGraph.createNode()
@@ -81,6 +84,7 @@ class Model {
         ijDistance.setEqualRelationship(efDistance)
         jiDistance.setEqualRelationship(feDistance)
         self.update()
+         */
     }
     
     func update() {

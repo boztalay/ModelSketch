@@ -69,7 +69,7 @@ class ConstructionNode: Hashable {
             return true
         }
         
-        return (relationship.inheritedPriority! < lastXRelationshipPriority)
+        return (relationship.inheritedPriority! <= lastXRelationshipPriority)
     }
     
     func canSetY(with relationship: Relationship) -> Bool {
@@ -77,7 +77,7 @@ class ConstructionNode: Hashable {
             return true
         }
         
-        return (relationship.inheritedPriority! < lastYRelationshipPriority)
+        return (relationship.inheritedPriority! <= lastYRelationshipPriority)
     }
     
     func set(x value: Double, with relationship: Relationship) -> Bool {
@@ -197,6 +197,11 @@ class ConstructionGraph {
         
         self.relationships.remove(at: index)
         relationship.removeFromNodes()
+    }
+    
+    func areAllNodeToNodeRelationshipsSatisfied() -> Bool {
+        let nodeToNodeRelationships = self.relationships.filter({ ($0 as? NodeToNodeRelationship) != nil }).map({ $0 as! NodeToNodeRelationship })
+        return nodeToNodeRelationships.map({ $0.isSatisfied() }).reduce(true, { $0 && $1 })
     }
     
     func update() {
