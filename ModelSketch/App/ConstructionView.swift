@@ -155,7 +155,7 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                 self.partialConnection = (nodeView, location)
                 self.setNeedsDisplay()
             } else if let translationDelta = gestureRecognizer.translationDelta {
-                self.graph.add(spring: ConstructionSpring(stiffness: 0.01, dampingCoefficient: 0.5, pointA: nodeView.node.cgPoint.adding(translationDelta), nodeB: nodeView.node, freeLength: 0.0, temporary: true))
+                self.graph.add(spring: ConstructionSpring(stiffness: 0.01, dampingCoefficient: 0.2, pointA: nodeView.node.cgPoint.adding(translationDelta), nodeB: nodeView.node, freeLength: 0.0, temporary: true))
                 self.update()
             }
         }
@@ -166,8 +166,9 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                     self.graph.connect(nodeA: nodeView.node, nodeB: endNodeView.node)
 
                     // TODO: Just for testing
-//                    let distance = nodeView.node.cgPoint.distance(to: endNodeView.node.cgPoint)
-//                    self.graph.add(nodeToNodeRelationship: DistanceRelationship(nodeA: nodeView.node, nodeB: endNodeView.node, min: distance, max: distance))
+                    let distance = nodeView.node.cgPoint.distance(to: endNodeView.node.cgPoint)
+                    self.graph.add(spring: ConstructionSpring(stiffness: 0.03, dampingCoefficient: 0.346, nodeA: nodeView.node, nodeB: endNodeView.node, freeLength: distance))
+                    self.update()
                 }
                 
                 nodeView.setHighlightState(.normal)

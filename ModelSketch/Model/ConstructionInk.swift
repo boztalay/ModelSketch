@@ -122,7 +122,7 @@ class ConstructionSpring: Hashable {
     }
     
     func hasSettled() -> Bool {
-        return (abs(self.velocity) < 0.001)
+        return (abs(self.velocity) < 0.0001)
     }
     
     func contains(_ node: ConstructionNode) -> Bool {
@@ -207,10 +207,17 @@ class ConstructionNode: Hashable {
         // NOTE: Mass is 1.0, so force is acceleration in this case
         let forceVector = self.springs.reduce(CGPoint.zero, { $0.adding($1.forceVector(for: self)) })
         
-        if let spring = self.springs.first, self.id == 1 {
-            print("node 1, \(self.springs.count) springs: (length \(spring.length)), (velocity \(spring.velocity)), (force \(spring.force)), (force vector (\(forceVector.x), \(forceVector.y))")
+        /*
+        if self.springs.count > 0, self.id == 0 {
+            print("node \(self.id), \(self.springs.count) springs")
+            for spring in self.springs {
+                print("    (length \(spring.length)), (velocity \(spring.velocity)), (force \(spring.force))")
+            }
+            print("    force vector (\(forceVector.x), \(forceVector.y))")
         }
+         */
         
+        // TODO: Friction?
         self.velocity = self.velocity.adding(forceVector)
         
         self.x = self.x + self.velocity.x
@@ -309,7 +316,7 @@ class ConstructionGraph {
     }
     
     func update() {
-        print("update")
+//        print("update")
         
         for node in self.nodes {
             node.resetForUpdate()
