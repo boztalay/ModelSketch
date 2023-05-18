@@ -7,7 +7,7 @@
 
 import Foundation
 
-class ConstructionSpring {
+class ConstructionSpring: Hashable {
     
     let stiffness: Double
     let dampingCoefficient: Double
@@ -85,10 +85,6 @@ class ConstructionSpring {
         let dampingForce = -1.0 * self.dampingCoefficient * self.velocity
         let displacementForce = -1.0 * self.displacement * self.stiffness
         self.force = dampingForce + displacementForce
-     
-        if self.nodeB.id == 1 {
-            print("node \(self.nodeB.id) spring: (length \(self.length)), (velocity \(self.velocity)), (force \(self.force))")
-        }
     }
     
     // TODO: Could be cleaner
@@ -140,6 +136,23 @@ class ConstructionSpring {
         
         return false
     }
+    
+    static func == (lhs: ConstructionSpring, rhs: ConstructionSpring) -> Bool {
+        return (lhs.pointA == rhs.pointA) && (lhs.nodeA == rhs.nodeA) && (lhs.nodeB == rhs.nodeB)
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        if let pointA = self.pointA {
+            hasher.combine(pointA.x)
+            hasher.combine(pointA.y)
+        }
+        
+        if let nodeA = self.nodeA {
+            hasher.combine(nodeA.hashValue)
+        }
+        
+        hasher.combine(self.nodeB.hashValue)
+    }
 }
 
 class ConstructionNode: Hashable {
@@ -182,6 +195,10 @@ class ConstructionNode: Hashable {
         self.springs.removeAll(where: { $0.contains(node) })
     }
     
+    func remove(spring: ConstructionSpring) {
+        self.springs.removeAll(where: { $0 == spring })
+    }
+    
     func resetForUpdate() {
         self.velocity = .zero
     }
@@ -190,8 +207,8 @@ class ConstructionNode: Hashable {
         // NOTE: Mass is 1.0, so force is acceleration in this case
         let forceVector = self.springs.reduce(CGPoint.zero, { $0.adding($1.forceVector(for: self)) })
         
-        if self.id == 1 {
-            print("node 1 force vector: (\(forceVector.x), \(forceVector.y))")
+        if let spring = self.springs.first, self.id == 1 {
+            print("node 1, \(self.springs.count) springs: (length \(spring.length)), (velocity \(spring.velocity)), (force \(spring.force)), (force vector (\(forceVector.x), \(forceVector.y))")
         }
         
         self.velocity = self.velocity.adding(forceVector)
@@ -263,6 +280,10 @@ class ConstructionGraph {
         self.nodes.remove(at: index)
         self.connections.removeAll(where: { $0.contains(nodeToRemove) })
         self.springs.removeAll(where: { $0.contains(nodeToRemove) })
+        
+        for node in self.nodes {
+            node.removeSprings(containing: node)
+        }
     }
     
     func connect(nodeA: ConstructionNode, nodeB: ConstructionNode) {
@@ -313,6 +334,14 @@ class ConstructionGraph {
             
             if self.haveAllSpringsSettled() {
                 break
+            }
+        }
+        
+        // TODO: This could be more efficient
+        let temporarySprings = self.springs.filter({ $0.temporary })
+        for node in self.nodes {
+            for spring in temporarySprings {
+                node.remove(spring: spring)
             }
         }
         
