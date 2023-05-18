@@ -16,23 +16,8 @@ class Model {
         self.constructionGraph = ConstructionGraph()
         self.metaGraph = MetaGraph(constructionGraph: self.constructionGraph)
 
-        var nodes = [ConstructionNode]()
-        for i in 0 ..< 10 {
-            let node = self.constructionGraph.createNode()
-            if i == 0 {
-                self.constructionGraph.add(inputRelationship: AffixRelationship(node: node, cgPoint: CGPoint(x: 200.0 + (CGFloat(i) * 50.0), y: 300.0)))
-            } else {
-                self.constructionGraph.add(inputRelationship: FollowPencilRelationship(node: node, cgPoint: CGPoint(x: 200.0 + (CGFloat(i) * 50.0), y: 300.0)))
-            }
-            nodes.append(node)
-        }
-        
-        self.constructionGraph.update()
-        
-        for i in 0 ..< (nodes.count - 1) {
-            self.constructionGraph.connect(nodeA: nodes[i], nodeB: nodes[i + 1])
-            self.constructionGraph.add(nodeToNodeRelationship: DistanceRelationship(nodeA: nodes[i], nodeB: nodes[i + 1], min: 50.0, max: 50.0))
-        }
+        let nodeA = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 300.0))
+        self.constructionGraph.add(spring: ConstructionSpring(stiffness: 0.1, dampingCoefficient: 0.1, pointA: nodeA.cgPoint, nodeB: nodeA, freeLength: 0.0))
 
         self.update()
     }

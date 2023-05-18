@@ -88,9 +88,9 @@ class NodeToNodeRelationship: Relationship {
         self.nodes.append(nodeA)
         self.nodes.append(nodeB)
         
-        for node in self.nodes {
-            node.add(relationship: self)
-        }
+//        for node in self.nodes {
+//            node.add(relationship: self)
+//        }
     }
     
     func isSatisfied() -> Bool {
@@ -109,9 +109,9 @@ class NodeToNodeRelationship: Relationship {
     }
 
     func removeFromNodes() {
-        for node in self.nodes {
-            node.remove(relationship: self)
-        }
+//        for node in self.nodes {
+//            node.remove(relationship: self)
+//        }
     }
 }
 
@@ -133,7 +133,7 @@ class AffixRelationship: InputRelationship {
     }
 
     override func apply() {
-        self.node.fix(to: self.cgPoint, with: self.priority)
+//        self.node.fix(to: self.cgPoint, with: self.priority)
     }
 }
 
@@ -196,6 +196,7 @@ class DistanceRelationship: NodeToNodeRelationship {
     }
     
     override func apply() {
+        /*
         var targetDistance = self.distance
         
         if let min = self.min, self.distance < min {
@@ -222,5 +223,6 @@ class DistanceRelationship: NodeToNodeRelationship {
         print("moving node \(endNode.id) from \(startNode.id) (error \(error))")
         
         endNode.move(to: CGPoint(x: startNode.cgPoint.x + newRun, y: startNode.cgPoint.y + newRise))
+         */
     }
 }

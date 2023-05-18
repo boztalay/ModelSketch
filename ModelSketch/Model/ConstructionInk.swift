@@ -7,6 +7,141 @@
 
 import Foundation
 
+class ConstructionSpring {
+    
+    let stiffness: Double
+    let dampingCoefficient: Double
+    let freeLength: Double
+    
+    let pointA: CGPoint?
+    let nodeA: ConstructionNode?
+    let nodeB: ConstructionNode
+    
+    let temporary: Bool
+    
+    var lastLength: Double
+    var velocity: Double
+    var force: Double
+    
+    var startPoint: CGPoint {
+        return self.pointA ?? self.nodeA!.cgPoint
+    }
+    
+    var endPoint: CGPoint {
+        return self.nodeB.cgPoint
+    }
+    
+    var length: Double {
+        return self.startPoint.distance(to: self.endPoint)
+    }
+    
+    var displacement: Double {
+        return self.length - self.freeLength
+    }
+    
+    init(stiffness: Double, dampingCoefficient: Double, nodeA: ConstructionNode, nodeB: ConstructionNode, freeLength: Double, temporary: Bool = false) {
+        self.stiffness = stiffness
+        self.dampingCoefficient = dampingCoefficient
+        self.pointA = nil
+        self.nodeA = nodeA
+        self.nodeB = nodeB
+        self.freeLength = freeLength
+        self.lastLength = 0.0
+        self.velocity = 0.0
+        self.force = 0.0
+        self.temporary = temporary
+        
+        self.nodeA!.add(spring: self)
+        self.nodeB.add(spring: self)
+    }
+    
+    init(stiffness: Double, dampingCoefficient: Double, pointA: CGPoint, nodeB: ConstructionNode, freeLength: Double, temporary: Bool = false) {
+        self.stiffness = stiffness
+        self.dampingCoefficient = dampingCoefficient
+        self.pointA = pointA
+        self.nodeA = nil
+        self.nodeB = nodeB
+        self.freeLength = freeLength
+        self.lastLength = 0.0
+        self.velocity = 0.0
+        self.force = 0.0
+        self.temporary = temporary
+
+        self.nodeB.add(spring: self)
+    }
+    
+    func resetForUpdate() {
+        self.velocity = 0.0
+        self.force = 0.0
+        self.lastLength = self.length
+    }
+    
+    func update() {
+        // Calculate velocity assuming a constant dt
+        self.velocity = self.length - self.lastLength
+        self.lastLength = self.length
+        
+        // Calculate the spring's force
+        let dampingForce = -1.0 * self.dampingCoefficient * self.velocity
+        let displacementForce = -1.0 * self.displacement * self.stiffness
+        self.force = dampingForce + displacementForce
+     
+        if self.nodeB.id == 1 {
+            print("node \(self.nodeB.id) spring: (length \(self.length)), (velocity \(self.velocity)), (force \(self.force))")
+        }
+    }
+    
+    // TODO: Could be cleaner
+    func otherPoint(for node: ConstructionNode) -> CGPoint? {
+        if let pointA = self.pointA {
+            if node == self.nodeB {
+                return pointA
+            }
+        } else if let nodeA = self.nodeA {
+            if node == nodeA {
+                return self.nodeB.cgPoint
+            } else if node == self.nodeB {
+                return nodeA.cgPoint
+            }
+        }
+        
+        return nil
+    }
+    
+    // TODO: Make an actual vector type
+    func forceVector(for node: ConstructionNode) -> CGPoint {
+        guard let otherPoint = self.otherPoint(for: node) else {
+            // TODO: Something more productive
+            fatalError()
+        }
+
+        let run = node.cgPoint.x - otherPoint.x
+        let rise = node.cgPoint.y - otherPoint.y
+        let angle = atan2(rise, run)
+
+        return CGPoint(
+            x: self.force * cos(angle),
+            y: self.force * sin(angle)
+        )
+    }
+    
+    func hasSettled() -> Bool {
+        return (abs(self.velocity) < 0.001)
+    }
+    
+    func contains(_ node: ConstructionNode) -> Bool {
+        if node == self.nodeB {
+            return true
+        }
+        
+        if let nodeA = self.nodeA {
+            return (node == nodeA)
+        }
+        
+        return false
+    }
+}
+
 class ConstructionNode: Hashable {
 
     static var nextId: Int = 0
@@ -21,93 +156,48 @@ class ConstructionNode: Hashable {
     let graph: ConstructionGraph
     private(set) var x: Double
     private(set) var y: Double
-    private(set) var relationships: [NodeToNodeRelationship]
-
-    private(set) var moveCount: Int
-    private(set) var inputPriority: RelationshipPriority?
+    private(set) var springs: [ConstructionSpring]
+    
+    private var velocity: CGPoint
     
     var cgPoint: CGPoint {
         return CGPoint(x: self.x, y: self.y)
     }
     
-    init(graph: ConstructionGraph) {
+    init(graph: ConstructionGraph, location: CGPoint) {
         self.id = ConstructionNode.getNextId()
         self.graph = graph
-        self.x = 0.0
-        self.y = 0.0
-        self.relationships = []
-        self.moveCount = 0
+        self.x = location.x
+        self.y = location.y
+        self.springs = []
+        self.velocity = .zero
     }
     
-    func resetForPropagation() {
-        self.moveCount = 0
-        self.inputPriority = nil
+    func add(spring: ConstructionSpring) {
+        // TODO: Check if the spring is already in the list
+        self.springs.append(spring)
     }
     
-    func add(relationship: NodeToNodeRelationship) {
-        guard relationship.contains(self) else {
-            return
-        }
-
-        guard !self.relationships.contains(relationship) else {
-            return
-        }
-
-        self.relationships.append(relationship)
+    func removeSprings(containing node: ConstructionNode) {
+        self.springs.removeAll(where: { $0.contains(node) })
     }
     
-    func remove(relationship: NodeToNodeRelationship) {
-        guard let index = self.relationships.firstIndex(of: relationship) else {
-            return
+    func resetForUpdate() {
+        self.velocity = .zero
+    }
+    
+    func update() {
+        // NOTE: Mass is 1.0, so force is acceleration in this case
+        let forceVector = self.springs.reduce(CGPoint.zero, { $0.adding($1.forceVector(for: self)) })
+        
+        if self.id == 1 {
+            print("node 1 force vector: (\(forceVector.x), \(forceVector.y))")
         }
         
-        self.relationships.remove(at: index)
-    }
-    
-    func removeRelationships(containing other: ConstructionNode) {
-        self.relationships.removeAll(where: { $0.contains(other) })
-    }
-    
-    func areAllRelationshipsSatisfied() -> Bool {
-        return self.relationships.map({ $0.isSatisfied() }).reduce(true, { $0 && $1 })
-    }
-    
-    func fix(to position: CGPoint, with priority: RelationshipPriority) {
-        self.move(to: position)
-        self.inputPriority = priority
-    }
-    
-    func move(to position: CGPoint) {
-        self.x = position.x
-        self.y = position.y
-        self.moveCount += 1
-    }
-    
-    func shouldBeMovedBefore(_ other: ConstructionNode) -> Bool {
-        if self.inputPriority == nil && other.inputPriority == nil {
-            return self.moveCount < other.moveCount
-        }
+        self.velocity = self.velocity.adding(forceVector)
         
-        if self.inputPriority != nil && other.inputPriority == nil {
-            return false
-        }
-        
-        if self.inputPriority == nil && other.inputPriority != nil {
-            return true
-        }
-        
-        let selfPriority = self.inputPriority!
-        let otherPriority = other.inputPriority!
-        
-        if selfPriority < otherPriority {
-            return true
-        }
-        
-        if otherPriority > selfPriority {
-            return false
-        }
-        
-        return self.moveCount < other.moveCount
+        self.x = self.x + self.velocity.x
+        self.y = self.y + self.velocity.y
     }
     
     static func == (lhs: ConstructionNode, rhs: ConstructionNode) -> Bool {
@@ -151,18 +241,16 @@ class ConstructionGraph {
     
     private(set) var nodes: [ConstructionNode]
     private(set) var connections: [ConstructionConnection]
-    private(set) var inputRelationships: [InputRelationship]
-    private(set) var nodeToNodeRelationships: [NodeToNodeRelationship]
+    private(set) var springs: [ConstructionSpring]
     
     init() {
         self.nodes = []
         self.connections = []
-        self.inputRelationships = []
-        self.nodeToNodeRelationships = []
+        self.springs = []
     }
     
-    func createNode() -> ConstructionNode {
-        let node = ConstructionNode(graph: self)
+    func createNode(at location: CGPoint) -> ConstructionNode {
+        let node = ConstructionNode(graph: self, location: location)
         self.nodes.append(node)
         return node
     }
@@ -174,13 +262,7 @@ class ConstructionGraph {
         
         self.nodes.remove(at: index)
         self.connections.removeAll(where: { $0.contains(nodeToRemove) })
-        
-        for node in self.nodes {
-            node.removeRelationships(containing: nodeToRemove)
-        }
-
-        self.inputRelationships.removeAll(where: { $0.contains(nodeToRemove) })
-        self.nodeToNodeRelationships.removeAll(where: { $0.contains(nodeToRemove) })
+        self.springs.removeAll(where: { $0.contains(nodeToRemove) })
     }
     
     func connect(nodeA: ConstructionNode, nodeB: ConstructionNode) {
@@ -195,61 +277,45 @@ class ConstructionGraph {
         
         self.connections.append(connection)
     }
-
-    func add(inputRelationship: InputRelationship) {
-        // TODO: Maybe validate that the relationship contains valid nodes?
-        self.inputRelationships.append(inputRelationship)
-        
-        // Sorts by lowest priority first
-        self.inputRelationships.sort(by: { $0.priority > $1.priority })
+    
+    func add(spring: ConstructionSpring) {
+        // TODO: Check if the spring is already in the list
+        self.springs.append(spring)
     }
     
-    func remove(inputRelationship: InputRelationship) {
-        guard let index = self.inputRelationships.firstIndex(of: inputRelationship) else {
-            return
-        }
-        
-        self.inputRelationships.remove(at: index)
-    }
-    
-    func add(nodeToNodeRelationship: NodeToNodeRelationship) {
-        // TODO: Maybe validate that the relationship contains valid nodes?
-        self.nodeToNodeRelationships.append(nodeToNodeRelationship)
-    }
-    
-    func remove(nodeToNodeRelationship: NodeToNodeRelationship) {
-        guard let index = self.nodeToNodeRelationships.firstIndex(of: nodeToNodeRelationship) else {
-            return
-        }
-        
-        self.nodeToNodeRelationships.remove(at: index)
-    }
-    
-    func areAllNodeToNodeRelationshipsSatisfied() -> Bool {
-        return self.nodeToNodeRelationships.map({ $0.isSatisfied() }).reduce(true, { $0 && $1 })
+    func haveAllSpringsSettled() -> Bool {
+        return self.springs.reduce(true, { $0 && $1.hasSettled() })
     }
     
     func update() {
+        print("update")
+        
         for node in self.nodes {
-            node.resetForPropagation()
+            node.resetForUpdate()
         }
         
-        for inputRelationship in self.inputRelationships {
-            inputRelationship.apply()
+        for spring in self.springs {
+            spring.resetForUpdate()
         }
         
-        var iterations = 0
-        while !self.areAllNodeToNodeRelationshipsSatisfied() {
-            let relationship = self.nodeToNodeRelationships.filter({ !$0.isSatisfied() }).map({ $0 as! DistanceRelationship }).sorted(by: { $0.getError() > $1.getError() }).first!
-            relationship.apply()
+        for spring in self.springs {
+            spring.update()
+        }
+        
+        while true {
+            for node in self.nodes {
+                node.update()
+            }
             
-//            for relationship in self.nodeToNodeRelationships.filter({ !$0.isSatisfied() }).map({ $0 as! DistanceRelationship }).sorted(by: { $0.getError() > $1.getError() }) {
-//                relationship.apply()
-//            }
-            iterations += 1
+            for spring in self.springs {
+                spring.update()
+            }
+            
+            if self.haveAllSpringsSettled() {
+                break
+            }
         }
-        print("\(iterations) iterations")
         
-        self.inputRelationships.removeAll(where: { $0.temporary })
+        self.springs.removeAll(where: { $0.temporary })
     }
 }
