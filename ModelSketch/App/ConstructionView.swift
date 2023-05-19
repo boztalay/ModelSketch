@@ -104,6 +104,7 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     let graph: ConstructionGraph
     var nodeViews: [ConstructionNode : ConstructionNodeView]
     var partialConnection: (ConstructionNodeView, CGPoint)?
+    var pencilSpring: ConstructionSpring?
     
     init(graph: ConstructionGraph) {
         self.graph = graph
@@ -146,17 +147,17 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
         if gestureRecognizer.state == .began {
             if gestureRecognizer.isHardPress {
                 self.partialConnection = (nodeView, location)
-                self.setNeedsDisplay()
+            } else {
+                self.pencilSpring = ConstructionSpring(stiffness: 0.01, dampingCoefficient: 0.2, pointA: location, nodeB: nodeView.node, freeLength: 0.0)
+                self.graph.add(spring: self.pencilSpring!)
             }
         }
         
         if gestureRecognizer.state == .changed {
             if gestureRecognizer.isHardPress {
                 self.partialConnection = (nodeView, location)
-                self.setNeedsDisplay()
-            } else if let translationDelta = gestureRecognizer.translationDelta {
-                self.graph.add(spring: ConstructionSpring(stiffness: 0.01, dampingCoefficient: 0.2, pointA: nodeView.node.cgPoint.adding(translationDelta), nodeB: nodeView.node, freeLength: 0.0, temporary: true))
-                self.update()
+            } else {
+                self.pencilSpring!.set(pointA: location)
             }
         }
         
@@ -174,9 +175,13 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                 nodeView.setHighlightState(.normal)
                 
                 self.partialConnection = nil
-                self.update()
+            } else {
+                self.graph.remove(spring: self.pencilSpring!)
+                self.pencilSpring = nil
             }
         }
+        
+        self.update()
     }
     
     func handleCreateGesture(at location: CGPoint) {

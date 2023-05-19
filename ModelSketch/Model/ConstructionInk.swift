@@ -13,7 +13,7 @@ class ConstructionSpring: Hashable {
     let dampingCoefficient: Double
     let freeLength: Double
     
-    let pointA: CGPoint?
+    private(set) var pointA: CGPoint?
     let nodeA: ConstructionNode?
     let nodeB: ConstructionNode
     
@@ -35,7 +35,7 @@ class ConstructionSpring: Hashable {
         var length = self.startPoint.distance(to: self.endPoint)
         
         // Cap the length used (so we don't get huge impulses)
-        let maxLength = (self.freeLength * 1.10) + 10.0
+        let maxLength = self.freeLength + 10.0
         if length > maxLength {
             length = maxLength
         }
@@ -82,6 +82,15 @@ class ConstructionSpring: Hashable {
         self.velocity = 0.0
         self.force = 0.0
         self.lastLength = self.length
+    }
+    
+    func set(pointA: CGPoint) {
+        guard self.nodeA == nil else {
+            // TODO: Something more productive here
+            fatalError()
+        }
+        
+        self.pointA = pointA
     }
     
     func update() {
@@ -310,6 +319,14 @@ class ConstructionGraph {
         self.springs.append(spring)
     }
     
+    func remove(spring: ConstructionSpring) {
+        for node in self.nodes {
+            node.remove(spring: spring)
+        }
+        
+        self.springs.removeAll(where: { $0 == spring })
+    }
+    
     func haveAllSpringsSettled() -> Bool {
         return self.springs.reduce(true, { $0 && $1.hasSettled() })
     }
@@ -343,12 +360,8 @@ class ConstructionGraph {
         
         // TODO: This could be more efficient
         let temporarySprings = self.springs.filter({ $0.temporary })
-        for node in self.nodes {
-            for spring in temporarySprings {
-                node.remove(spring: spring)
-            }
+        for spring in temporarySprings {
+            self.remove(spring: spring)
         }
-        
-        self.springs.removeAll(where: { $0.temporary })
     }
 }
