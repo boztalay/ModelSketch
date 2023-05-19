@@ -32,7 +32,15 @@ class ConstructionSpring: Hashable {
     }
     
     var length: Double {
-        return self.startPoint.distance(to: self.endPoint)
+        var length = self.startPoint.distance(to: self.endPoint)
+        
+        // Cap the length used (so we don't get huge impulses)
+        let maxLength = (self.freeLength * 1.10) + 10.0
+        if length > maxLength {
+            length = maxLength
+        }
+        
+        return length
     }
     
     var displacement: Double {
@@ -204,21 +212,12 @@ class ConstructionNode: Hashable {
     }
     
     func update() {
+        let springForce = self.springs.reduce(CGPoint.zero, { $0.adding($1.forceVector(for: self)) })
+        let frictionForce = self.velocity.scaled(by: -0.1)
+        let totalForce = springForce.adding(frictionForce)
+        
         // NOTE: Mass is 1.0, so force is acceleration in this case
-        let forceVector = self.springs.reduce(CGPoint.zero, { $0.adding($1.forceVector(for: self)) })
-        
-        /*
-        if self.springs.count > 0, self.id == 0 {
-            print("node \(self.id), \(self.springs.count) springs")
-            for spring in self.springs {
-                print("    (length \(spring.length)), (velocity \(spring.velocity)), (force \(spring.force))")
-            }
-            print("    force vector (\(forceVector.x), \(forceVector.y))")
-        }
-         */
-        
-        // TODO: Friction?
-        self.velocity = self.velocity.adding(forceVector)
+        self.velocity = self.velocity.adding(totalForce)
         
         self.x = self.x + self.velocity.x
         self.y = self.y + self.velocity.y
@@ -316,8 +315,6 @@ class ConstructionGraph {
     }
     
     func update() {
-//        print("update")
-        
         for node in self.nodes {
             node.resetForUpdate()
         }
