@@ -105,7 +105,7 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     var nodeViews: [ConstructionNode : ConstructionNodeView]
     var partialConnection: (ConstructionNodeView, CGPoint)?
     var pencilSpring: ConstructionSpring?
-    var timer: Timer!
+    var displayLink: CADisplayLink?
     
     init(graph: ConstructionGraph) {
         self.graph = graph
@@ -114,10 +114,20 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
         super.init(frame: CGRect.zero)
         
         self.backgroundColor = .clear
-        
-        self.timer = Timer.scheduledTimer(withTimeInterval: 0.033, repeats: true) { _ in
-            self.update()
+    }
+    
+    func start() {
+        self.displayLink = CADisplayLink(target: self, selector: #selector(update))
+        self.displayLink!.add(to: .current, forMode: .common)
+    }
+    
+    func stop() {
+        if let displayLink = self.displayLink {
+            displayLink.invalidate()
+            displayLink.remove(from: .current, forMode: .common)
         }
+
+        self.displayLink = nil
     }
     
     func getNodeView(at location: CGPoint) -> UIView? {
@@ -210,8 +220,13 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
         }
     }
 
-    func update() {
-        self.graph.update()
+    @objc func update() {
+        guard let displayLink = self.displayLink else {
+            return
+        }
+        
+        let dt = displayLink.targetTimestamp - displayLink.timestamp
+        self.graph.update(dt: dt)
 
         for node in self.graph.nodes {
             if self.nodeViews[node] == nil {

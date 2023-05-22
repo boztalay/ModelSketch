@@ -29,6 +29,5 @@ class Model {
     
     func update() {
         self.metaGraph.update()
-        self.constructionGraph.update()
     }
 }

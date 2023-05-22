@@ -82,6 +82,14 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
                 self.nodePanGestureRecognizer.nodeDelegate = self.metaView
         }
     }
+    
+    func startConstruction() {
+        self.constructionView.start()
+    }
+    
+    func stopConstruction() {
+        self.constructionView.stop()
+    }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
@@ -165,6 +173,7 @@ struct RepresentedSketchView: UIViewRepresentable {
     typealias UIViewType = SketchView
     
     @Binding var drawingMode: SketchView.DrawingMode
+    @Binding var isVisible: Bool
 
     func makeUIView(context: Context) -> SketchView {
         return SketchView()
@@ -172,5 +181,11 @@ struct RepresentedSketchView: UIViewRepresentable {
 
     func updateUIView(_ uiView: SketchView, context: Context) {
         uiView.setDrawingMode(drawingMode: self.drawingMode)
+        
+        if self.isVisible {
+            uiView.startConstruction()
+        } else {
+            uiView.stopConstruction()
+        }
     }
 }

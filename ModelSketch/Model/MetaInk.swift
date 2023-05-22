@@ -102,6 +102,6 @@ class MetaGraph {
     }
     
     func update() {
-        self.constructionGraph.update()
+
     }
 }

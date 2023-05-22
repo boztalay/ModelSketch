@@ -75,9 +75,9 @@ class ConstructionSpring: Hashable {
         self.pointA = pointA
     }
     
-    func update() {
-        // Calculate velocity assuming a constant dt
-        self.velocity = self.length - self.lastLength
+    func update(dt: Double) {
+        // Calculate the spring's displacement velocity
+        self.velocity = (self.length - self.lastLength) / dt
         self.lastLength = self.length
         
         // Calculate the spring's force
@@ -194,13 +194,13 @@ class ConstructionNode: Hashable {
         self.springs.removeAll(where: { $0 == spring })
     }
     
-    func update() {
+    func update(dt: Double) {
         let springForce = self.springs.reduce(CGPoint.zero, { $0.adding($1.forceVector(for: self)) })
-        let frictionForce = self.velocity.scaled(by: -0.1)
+        let frictionForce = self.velocity.scaled(by: -0.1) // TODO: Make this a static let parameter or tunable
         let totalForce = springForce.adding(frictionForce)
         
         // NOTE: Mass is 1.0, so force is acceleration in this case
-        self.velocity = self.velocity.adding(totalForce)
+        self.velocity = self.velocity.adding(totalForce.scaled(by: dt))
         
         self.x = self.x + self.velocity.x
         self.y = self.y + self.velocity.y
@@ -301,13 +301,13 @@ class ConstructionGraph {
         self.springs.removeAll(where: { $0 == spring })
     }
     
-    func update() {
+    func update(dt: Double) {
         for spring in self.springs {
-            spring.update()
+            spring.update(dt: dt)
         }
 
         for node in self.nodes {
-            node.update()
+            node.update(dt: dt)
         }
     }
 }

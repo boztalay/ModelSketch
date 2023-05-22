@@ -17,6 +17,7 @@ struct ContentView: View {
     @State private var selection: Screen? = .sketch
     @State private var columnVisibility = NavigationSplitViewVisibility.detailOnly
     @State private var drawingMode: SketchView.DrawingMode = .construction
+    @State private var isSketchVisible: Bool = false
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -29,7 +30,13 @@ struct ContentView: View {
             switch self.selection {
                 case .sketch:
                     ZStack {
-                        RepresentedSketchView(drawingMode: $drawingMode).ignoresSafeArea().navigationTitle("")
+                        RepresentedSketchView(drawingMode: $drawingMode, isVisible: $isSketchVisible).ignoresSafeArea().navigationTitle("")
+                            .onAppear() {
+                                isSketchVisible = true
+                            }
+                            .onDisappear() {
+                                isSketchVisible = false
+                            }
                         HStack {
                             Spacer()
                             VStack {
