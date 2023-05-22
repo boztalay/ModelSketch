@@ -166,7 +166,7 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                 if let pencilSpring = self.pencilSpring {
                     pencilSpring.set(pointA: location)
                 } else {
-                    self.pencilSpring = ConstructionSpring(stiffness: 0.1, dampingCoefficient: 0.632, pointA: location, nodeB: nodeView.node, freeLength: 0.0)
+                    self.pencilSpring = FollowPencilSpring(node: nodeView.node, location: location)
                     self.graph.add(spring: self.pencilSpring!)
                 }
             }
@@ -187,7 +187,7 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
 
                     // TODO: Just for testing
                     let distance = nodeView.node.cgPoint.distance(to: endNodeView.node.cgPoint)
-                    self.graph.add(spring: ConstructionSpring(stiffness: 0.03, dampingCoefficient: 0.346, nodeA: nodeView.node, nodeB: endNodeView.node, freeLength: distance))
+                    self.graph.add(spring: DistanceSpring(nodeA: nodeView.node, nodeB: endNodeView.node, distance: distance))
                 }
                 
                 nodeView.setHighlightState(.normal)
