@@ -17,8 +17,6 @@ class ConstructionSpring: Hashable {
     let nodeA: ConstructionNode?
     let nodeB: ConstructionNode
     
-    let temporary: Bool
-    
     var lastLength: Double
     var velocity: Double
     var force: Double
@@ -32,22 +30,14 @@ class ConstructionSpring: Hashable {
     }
     
     var length: Double {
-        var length = self.startPoint.distance(to: self.endPoint)
-        
-        // Cap the length used (so we don't get huge impulses)
-        let maxLength = self.freeLength + 10.0
-        if length > maxLength {
-            length = maxLength
-        }
-        
-        return length
+        return self.startPoint.distance(to: self.endPoint)
     }
     
     var displacement: Double {
         return self.length - self.freeLength
     }
     
-    init(stiffness: Double, dampingCoefficient: Double, nodeA: ConstructionNode, nodeB: ConstructionNode, freeLength: Double, temporary: Bool = false) {
+    init(stiffness: Double, dampingCoefficient: Double, nodeA: ConstructionNode, nodeB: ConstructionNode, freeLength: Double) {
         self.stiffness = stiffness
         self.dampingCoefficient = dampingCoefficient
         self.pointA = nil
@@ -57,13 +47,12 @@ class ConstructionSpring: Hashable {
         self.lastLength = 0.0
         self.velocity = 0.0
         self.force = 0.0
-        self.temporary = temporary
         
         self.nodeA!.add(spring: self)
         self.nodeB.add(spring: self)
     }
     
-    init(stiffness: Double, dampingCoefficient: Double, pointA: CGPoint, nodeB: ConstructionNode, freeLength: Double, temporary: Bool = false) {
+    init(stiffness: Double, dampingCoefficient: Double, pointA: CGPoint, nodeB: ConstructionNode, freeLength: Double) {
         self.stiffness = stiffness
         self.dampingCoefficient = dampingCoefficient
         self.pointA = pointA
@@ -73,17 +62,10 @@ class ConstructionSpring: Hashable {
         self.lastLength = 0.0
         self.velocity = 0.0
         self.force = 0.0
-        self.temporary = temporary
 
         self.nodeB.add(spring: self)
     }
-    
-    func resetForUpdate() {
-        self.velocity = 0.0
-        self.force = 0.0
-        self.lastLength = self.length
-    }
-    
+
     func set(pointA: CGPoint) {
         guard self.nodeA == nil else {
             // TODO: Something more productive here
@@ -136,10 +118,6 @@ class ConstructionSpring: Hashable {
             x: self.force * cos(angle),
             y: self.force * sin(angle)
         )
-    }
-    
-    func hasSettled() -> Bool {
-        return (abs(self.velocity) < 0.0001)
     }
     
     func contains(_ node: ConstructionNode) -> Bool {
@@ -214,10 +192,6 @@ class ConstructionNode: Hashable {
     
     func remove(spring: ConstructionSpring) {
         self.springs.removeAll(where: { $0 == spring })
-    }
-    
-    func resetForUpdate() {
-        self.velocity = .zero
     }
     
     func update() {
@@ -327,41 +301,13 @@ class ConstructionGraph {
         self.springs.removeAll(where: { $0 == spring })
     }
     
-    func haveAllSpringsSettled() -> Bool {
-        return self.springs.reduce(true, { $0 && $1.hasSettled() })
-    }
-    
     func update() {
-        for node in self.nodes {
-            node.resetForUpdate()
-        }
-        
-        for spring in self.springs {
-            spring.resetForUpdate()
-        }
-        
         for spring in self.springs {
             spring.update()
         }
-        
-        while true {
-            for node in self.nodes {
-                node.update()
-            }
-            
-            for spring in self.springs {
-                spring.update()
-            }
-            
-            if self.haveAllSpringsSettled() {
-                break
-            }
-        }
-        
-        // TODO: This could be more efficient
-        let temporarySprings = self.springs.filter({ $0.temporary })
-        for spring in temporarySprings {
-            self.remove(spring: spring)
+
+        for node in self.nodes {
+            node.update()
         }
     }
 }

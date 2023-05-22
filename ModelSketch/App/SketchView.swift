@@ -104,7 +104,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         }
         
         self.metaView.update()
-        self.constructionView.update()
+//        self.constructionView.update()
     }
     
     func strokeCompletion(_ stroke: PencilStroke) {
@@ -125,7 +125,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         }
         
         self.metaView.update()
-        self.constructionView.update()
+//        self.constructionView.update()
     }
     
     func handleCreateGesture(at location: CGPoint) {

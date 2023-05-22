@@ -18,6 +18,11 @@ class Model {
 
         let nodeA = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 300.0))
         self.constructionGraph.add(spring: ConstructionSpring(stiffness: 0.1, dampingCoefficient: 0.632, pointA: nodeA.cgPoint, nodeB: nodeA, freeLength: 0.0))
+        
+        let nodeB = self.constructionGraph.createNode(at: CGPoint(x: 400.0, y: 400.0))
+        let nodeC = self.constructionGraph.createNode(at: CGPoint(x: 500.0, y: 400.0))
+        self.constructionGraph.connect(nodeA: nodeB, nodeB: nodeC)
+        self.constructionGraph.add(spring: ConstructionSpring(stiffness: 0.03, dampingCoefficient: 0.346, nodeA: nodeB, nodeB: nodeC, freeLength: 100.0))
 
         self.update()
     }

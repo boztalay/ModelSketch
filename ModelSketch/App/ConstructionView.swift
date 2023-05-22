@@ -32,7 +32,7 @@ class ConstructionNodeView: UIView {
 
     let node: ConstructionNode
     var highlightState: HighlightState
-    
+
     init(node: ConstructionNode) {
         self.node = node
         self.highlightState = .normal
@@ -105,6 +105,7 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     var nodeViews: [ConstructionNode : ConstructionNodeView]
     var partialConnection: (ConstructionNodeView, CGPoint)?
     var pencilSpring: ConstructionSpring?
+    var timer: Timer!
     
     init(graph: ConstructionGraph) {
         self.graph = graph
@@ -113,6 +114,10 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
         super.init(frame: CGRect.zero)
         
         self.backgroundColor = .clear
+        
+        self.timer = Timer.scheduledTimer(withTimeInterval: 0.033, repeats: true) { _ in
+            self.update()
+        }
     }
     
     func getNodeView(at location: CGPoint) -> UIView? {
@@ -148,8 +153,12 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
             if gestureRecognizer.isHardPress {
                 self.partialConnection = (nodeView, location)
             } else {
-                self.pencilSpring = ConstructionSpring(stiffness: 0.01, dampingCoefficient: 0.2, pointA: location, nodeB: nodeView.node, freeLength: 0.0)
-                self.graph.add(spring: self.pencilSpring!)
+                if let pencilSpring = self.pencilSpring {
+                    pencilSpring.set(pointA: location)
+                } else {
+                    self.pencilSpring = ConstructionSpring(stiffness: 0.1, dampingCoefficient: 0.632, pointA: location, nodeB: nodeView.node, freeLength: 0.0)
+                    self.graph.add(spring: self.pencilSpring!)
+                }
             }
         }
         
@@ -169,7 +178,6 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                     // TODO: Just for testing
                     let distance = nodeView.node.cgPoint.distance(to: endNodeView.node.cgPoint)
                     self.graph.add(spring: ConstructionSpring(stiffness: 0.03, dampingCoefficient: 0.346, nodeA: nodeView.node, nodeB: endNodeView.node, freeLength: distance))
-                    self.update()
                 }
                 
                 nodeView.setHighlightState(.normal)
@@ -180,13 +188,10 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                 self.pencilSpring = nil
             }
         }
-        
-        self.update()
     }
     
     func handleCreateGesture(at location: CGPoint) {
         _ = self.graph.createNode(at: location)
-        self.update()
     }
     
     func handleScratchGesture(along points: [CGPoint]) {
@@ -203,13 +208,11 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
         for node in nodesToDelete {
             self.graph.remove(node: node)
         }
-
-        self.update()
     }
 
     func update() {
         self.graph.update()
-        
+
         for node in self.graph.nodes {
             if self.nodeViews[node] == nil {
                 let nodeView = ConstructionNodeView(node: node)
