@@ -155,21 +155,21 @@ class ConstructionSpring: Hashable {
 class AffixSpring: ConstructionSpring {
     
     init(node: ConstructionNode, to point: CGPoint) {
-        super.init(stiffness: 100.0, dampingCoefficient: 0.000, pointA: point, nodeB: node, freeLength: 0.0)
+        super.init(stiffness: 250.0, dampingCoefficient: 31.623, pointA: point, nodeB: node, freeLength: 0.0)
     }
 }
 
 class DistanceSpring: ConstructionSpring {
     
     init(nodeA: ConstructionNode, nodeB: ConstructionNode, distance: Double) {
-        super.init(stiffness: 25.0, dampingCoefficient: 0.000, nodeA: nodeA, nodeB: nodeB, freeLength: distance)
+        super.init(stiffness: 250.0, dampingCoefficient: 31.623, nodeA: nodeA, nodeB: nodeB, freeLength: distance)
     }
 }
 
 class FollowPencilSpring: ConstructionSpring {
     
     init(node: ConstructionNode, location: CGPoint) {
-        super.init(stiffness: 15.0, dampingCoefficient: 0.000, pointA: location, nodeB: node, freeLength: 0.0)
+        super.init(stiffness: 250.0, dampingCoefficient: 31.623, pointA: location, nodeB: node, freeLength: 0.0)
     }
 }
 
@@ -219,14 +219,14 @@ class ConstructionNode: Hashable {
     
     func update(dt: Double) {
         let springForce = self.springs.reduce(CGPoint.zero, { $0.adding($1.forceVector(for: self)) })
-        let frictionForce = self.velocity.scaled(by: -50.0) // TODO: Make this a static let parameter or tunable, also needs to be scaled to the spring force somehow?
+        let frictionForce = self.velocity.scaled(by: -0.01) // TODO: Make this a static let parameter or tunable, also needs to be scaled to the spring force somehow?
         let totalForce = springForce.adding(frictionForce)
         
         // NOTE: Mass is 1.0, so force is acceleration in this case
         self.velocity = self.velocity.adding(totalForce.scaled(by: dt))
         
-        self.x = self.x + self.velocity.x
-        self.y = self.y + self.velocity.y
+        self.x = self.x + (self.velocity.x * dt)
+        self.y = self.y + (self.velocity.y * dt)
     }
     
     static func == (lhs: ConstructionNode, rhs: ConstructionNode) -> Bool {
