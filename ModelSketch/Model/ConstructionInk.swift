@@ -155,21 +155,21 @@ class ConstructionSpring: Hashable {
 class AffixSpring: ConstructionSpring {
     
     init(node: ConstructionNode, to point: CGPoint) {
-        super.init(stiffness: 250.0, dampingCoefficient: 31.623, pointA: point, nodeB: node, freeLength: 0.0)
+        super.init(stiffness: 5000.0, dampingCoefficient: 141.0, pointA: point, nodeB: node, freeLength: 0.0)
     }
 }
 
 class DistanceSpring: ConstructionSpring {
     
     init(nodeA: ConstructionNode, nodeB: ConstructionNode, distance: Double) {
-        super.init(stiffness: 250.0, dampingCoefficient: 31.623, nodeA: nodeA, nodeB: nodeB, freeLength: distance)
+        super.init(stiffness: 2500.0, dampingCoefficient: 100.0, nodeA: nodeA, nodeB: nodeB, freeLength: distance)
     }
 }
 
 class FollowPencilSpring: ConstructionSpring {
     
     init(node: ConstructionNode, location: CGPoint) {
-        super.init(stiffness: 250.0, dampingCoefficient: 31.623, pointA: location, nodeB: node, freeLength: 0.0)
+        super.init(stiffness: 5000.0, dampingCoefficient: 141.0, pointA: location, nodeB: node, freeLength: 0.0)
     }
 }
 
@@ -219,7 +219,7 @@ class ConstructionNode: Hashable {
     
     func update(dt: Double) {
         let springForce = self.springs.reduce(CGPoint.zero, { $0.adding($1.forceVector(for: self)) })
-        let frictionForce = self.velocity.scaled(by: -0.01) // TODO: Make this a static let parameter or tunable, also needs to be scaled to the spring force somehow?
+        let frictionForce = self.velocity.scaled(by: -2.0) // TODO: Make this a static let parameter or tunable, also needs to be scaled to the spring force somehow?
         let totalForce = springForce.adding(frictionForce)
         
         // NOTE: Mass is 1.0, so force is acceleration in this case
@@ -325,12 +325,18 @@ class ConstructionGraph {
     }
     
     func update(dt: Double) {
-        for spring in self.springs {
-            spring.update(dt: dt)
-        }
+        let subframeCount = 25
 
-        for node in self.nodes {
-            node.update(dt: dt)
+        for _ in 0 ..< subframeCount {
+            let subframeDt = dt / Double(subframeCount)
+            
+            for spring in self.springs {
+                spring.update(dt: subframeDt)
+            }
+            
+            for node in self.nodes {
+                node.update(dt: subframeDt)
+            }
         }
     }
 }
