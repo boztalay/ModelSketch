@@ -294,7 +294,7 @@ class ConstructionGraph {
         self.springs.removeAll(where: { $0.contains(nodeToRemove) })
         
         for node in self.nodes {
-            node.removeSprings(containing: node)
+            node.removeSprings(containing: nodeToRemove)
         }
     }
     
