@@ -40,6 +40,10 @@ class MetaNode: Hashable {
         self.y = 0.0
     }
     
+    func update() {
+        
+    }
+    
     static func == (lhs: MetaNode, rhs: MetaNode) -> Bool {
         return (lhs.id == rhs.id)
     }
@@ -49,41 +53,39 @@ class MetaNode: Hashable {
     }
 }
 
-class MetaQuantityNode: MetaNode {
-
-    var min: Double?
-    var max: Double?
-
-    init(min: Double? = nil, max: Double? = nil) {
-        self.min = min
-        self.max = max
-
-        super.init()
-    }
-    
-    func readQuantity() -> Double {
-        fatalError("readQuantity must be implemented")
-    }
-    
-    func updateRelationships() {
-        fatalError("updateRelationships must be implemented")
-    }
-}
-
-class MetaDistanceQuantityNode: MetaQuantityNode {
+class MetaDistanceNode: MetaNode {
     
     let nodeA: ConstructionNode
     let nodeB: ConstructionNode
-    
-    init(nodeA: ConstructionNode, nodeB: ConstructionNode, min: Double? = nil, max: Double? = nil) {
-        self.nodeA = nodeA
-        self.nodeB = nodeB
 
-        super.init(min: min, max: max)
+    private(set) var spring: ConstructionSpring?
+    private(set) var otherDistanceNode: MetaDistanceNode?
+    
+    var distance: Double {
+        return self.nodeA.cgPoint.distance(to: self.nodeB.cgPoint)
     }
     
-    override func readQuantity() -> Double {
-        return self.nodeA.cgPoint.distance(to: self.nodeB.cgPoint)
+    init(nodeA: ConstructionNode, nodeB: ConstructionNode) {
+        self.nodeA = nodeA
+        self.nodeB = nodeB
+    }
+    
+    func equate(to other: MetaDistanceNode) {
+        self.otherDistanceNode = other
+        self.spring = DistanceSpring(nodeA: self.nodeA, nodeB: self.nodeB, distance: self.otherDistanceNode!.distance)
+        self.nodeA.graph.add(spring: self.spring!)
+        
+        if self.otherDistanceNode!.otherDistanceNode == nil {
+            self.otherDistanceNode!.equate(to: self)
+        }
+    }
+    
+    override func update() {
+        guard let spring = self.spring, let otherDistanceNode = self.otherDistanceNode else {
+            return
+        }
+
+        spring.freeLength = otherDistanceNode.distance
     }
 }
 
@@ -102,6 +104,8 @@ class MetaGraph {
     }
     
     func update() {
-
+        for node in self.nodes {
+            node.update()
+        }
     }
 }

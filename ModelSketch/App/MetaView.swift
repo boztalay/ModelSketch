@@ -40,8 +40,8 @@ class MetaTerminalView: UIView {
 class MetaNodeView: UIView {
     
     static func view(for node: MetaNode) -> MetaNodeView? {
-        if let distanceQuantityNode = node as? MetaDistanceQuantityNode {
-            return MetaDistanceQuantityNodeView(node: distanceQuantityNode)
+        if let distanceNode = node as? MetaDistanceNode {
+            return MetaDistanceNodeView(node: distanceNode)
         }
         
         return nil
@@ -70,15 +70,15 @@ class MetaNodeView: UIView {
     }
 }
 
-class MetaDistanceQuantityNodeView: MetaNodeView {
+class MetaDistanceNodeView: MetaNodeView {
     
     var label: MetaQuanitityLabel!
     
-    var quantityNode: MetaDistanceQuantityNode {
-        return self.node as! MetaDistanceQuantityNode
+    var quantityNode: MetaDistanceNode {
+        return self.node as! MetaDistanceNode
     }
     
-    init(node: MetaDistanceQuantityNode) {
+    init(node: MetaDistanceNode) {
         super.init(node: node)
 
         self.backgroundColor = .clear
@@ -102,7 +102,7 @@ class MetaDistanceQuantityNodeView: MetaNodeView {
         self.frame = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY).insetBy(dx: -2.0, dy: -2.0)
         self.quantityNode.cgPoint = self.center
         
-        self.label.text = "\(Int(round(self.quantityNode.readQuantity())))"
+        self.label.text = "\(Int(round(self.quantityNode.distance)))"
         self.label.sizeToFit()
         self.label.frame = self.label.frame.insetBy(dx: -2.0, dy: -1.0)
         self.label.layer.cornerRadius = self.label.frame.height / 3.0
@@ -200,32 +200,28 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
         
         if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
             if gestureRecognizer.isHardPress {
-                /*
                 let startView = self.partialConnection?.0
                 
                 if let startNodeView = startView as? ConstructionNodeView {
                     if let endNodeView = self.constructionView.getNodeView(at: location) as? ConstructionNodeView {
-                        let distanceNode = MetaDistanceQuantityNode(nodeA: startNodeView.node, nodeB: endNodeView.node)
+                        let distanceNode = MetaDistanceNode(nodeA: startNodeView.node, nodeB: endNodeView.node)
                         self.graph.add(node: distanceNode)
                     }
                     
                     startNodeView.setHighlightState(.normal)
                 } else if let startQuantityLabel = startView as? MetaQuanitityLabel {
                     if let endQuantityLabel = self.getNodeView(at: location) as? MetaQuanitityLabel {
-                        let startDistanceNodeView = startQuantityLabel.superview as! MetaDistanceQuantityNodeView
-                        let endDistanceNodeView = endQuantityLabel.superview as! MetaDistanceQuantityNodeView
+                        let startDistanceNodeView = startQuantityLabel.superview as! MetaDistanceNodeView
+                        let endDistanceNodeView = endQuantityLabel.superview as! MetaDistanceNodeView
                         
                         let startNode = startDistanceNodeView.quantityNode
                         let endNode = endDistanceNodeView.quantityNode
                         
-                        startNode.equalNode = endNode
-                        startNode.updateRelationships()
+                        startNode.equate(to: endNode)
                     }
                 }
-                 */
                 
                 self.partialConnection = nil
-                self.update()
             }
         }
     }
@@ -239,8 +235,6 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
     }
     
     func update() {
-        self.graph.update()
-        
         for node in self.graph.nodes {
             if self.nodeViews[node] == nil {
                 let nodeView = MetaNodeView.view(for: node)!
@@ -295,6 +289,26 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
             if let start = start, let end = end {
                 self.drawLine(start: start, end: end, lineWidth: 2.0, color: .systemYellow)
             }
+        }
+        
+        var nodesDrawnAlready = Set<MetaDistanceNode>()
+
+        for node in self.nodeViews.keys {
+            guard let distanceNode = node as? MetaDistanceNode else {
+                continue
+            }
+            
+            guard !nodesDrawnAlready.contains(distanceNode) else {
+                continue
+            }
+            
+            guard let otherDistanceNode = distanceNode.otherDistanceNode else {
+                continue
+            }
+            
+            self.drawLine(start: distanceNode.cgPoint, end: otherDistanceNode.cgPoint, lineWidth: 2.0, color: .systemYellow)
+            nodesDrawnAlready.insert(distanceNode)
+            nodesDrawnAlready.insert(otherDistanceNode)
         }
     }
     

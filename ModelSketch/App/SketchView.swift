@@ -38,6 +38,7 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
     var metaView: MetaView!
     var constructionView: ConstructionView!
     var nodePanGestureRecognizer: NodePanGestureRecognizer!
+    var displayLink: CADisplayLink?
     
     var drawingMode: DrawingMode
     
@@ -83,12 +84,30 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
         }
     }
     
-    func startConstruction() {
-        self.constructionView.start()
+    func start() {
+        self.displayLink = CADisplayLink(target: self, selector: #selector(update))
+        self.displayLink!.add(to: .current, forMode: .common)
     }
     
-    func stopConstruction() {
-        self.constructionView.stop()
+    func stop() {
+        if let displayLink = self.displayLink {
+            displayLink.invalidate()
+            displayLink.remove(from: .current, forMode: .common)
+        }
+
+        self.displayLink = nil
+    }
+    
+    @objc func update() {
+        guard let displayLink = self.displayLink else {
+            return
+        }
+        
+        let dt = displayLink.targetTimestamp - displayLink.timestamp
+
+        self.model.update(dt: dt)
+        self.constructionView.update()
+        self.metaView.update()
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -110,9 +129,6 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             case .meta:
                 self.metaView.handleNodePanGestureUpdate(gestureRecognizer)
         }
-        
-        self.metaView.update()
-//        self.constructionView.update()
     }
     
     func strokeCompletion(_ stroke: PencilStroke) {
@@ -131,9 +147,6 @@ class SketchView: UIView, UIGestureRecognizerDelegate {
             default:
                 return
         }
-        
-        self.metaView.update()
-//        self.constructionView.update()
     }
     
     func handleCreateGesture(at location: CGPoint) {
@@ -183,9 +196,9 @@ struct RepresentedSketchView: UIViewRepresentable {
         uiView.setDrawingMode(drawingMode: self.drawingMode)
         
         if self.isVisible {
-            uiView.startConstruction()
+            uiView.start()
         } else {
-            uiView.stopConstruction()
+            uiView.stop()
         }
     }
 }

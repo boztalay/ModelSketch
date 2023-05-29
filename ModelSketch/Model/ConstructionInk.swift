@@ -11,7 +11,7 @@ class ConstructionSpring: Hashable {
     
     let stiffness: Double
     let dampingCoefficient: Double
-    let freeLength: Double
+    var freeLength: Double
     
     private(set) var pointA: CGPoint?
     let nodeA: ConstructionNode?
@@ -325,6 +325,9 @@ class ConstructionGraph {
     }
     
     func update(dt: Double) {
+        // TODO: Try to meet a maximum dt instead of just dividing by
+        // TODO: subframeCount, this would keep the physics steadier
+        // TODO: with varying frame rates
         let subframeCount = 25
 
         for _ in 0 ..< subframeCount {
