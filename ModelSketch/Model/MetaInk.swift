@@ -41,7 +41,15 @@ class MetaNode: Hashable {
     }
     
     func update() {
-        
+        fatalError("update must be implemented")
+    }
+    
+    func removeReferences(to other: MetaNode) {
+        fatalError("removeReferences must be implemented")
+    }
+    
+    func removeConstructionSprings() {
+        fatalError("removeConstructionSprings must be implemented")
     }
     
     static func == (lhs: MetaNode, rhs: MetaNode) -> Bool {
@@ -53,39 +61,99 @@ class MetaNode: Hashable {
     }
 }
 
-class MetaDistanceNode: MetaNode {
+class MetaQuantityNode: MetaNode {
+    
+    var min: Double? {
+        if let minValue = self.minValue {
+            return minValue
+        } else if let minNode = self.minNode {
+            return minNode.readQuantity()
+        } else {
+            return nil
+        }
+    }
+    
+    var max: Double? {
+        if let maxValue = self.maxValue {
+            return maxValue
+        } else if let maxNode = self.maxNode {
+            return maxNode.readQuantity()
+        } else {
+            return nil
+        }
+    }
+    
+    private(set) var minValue: Double?
+    private(set) var maxValue: Double?
+    private(set) var minNode: MetaQuantityNode?
+    private(set) var maxNode: MetaQuantityNode?
+    
+    func setMin(to value: Double) {
+        self.minValue = value
+        self.minNode = nil
+    }
+    
+    func setMax(to value: Double) {
+        self.maxValue = value
+        self.maxNode = nil
+    }
+    
+    func setMin(to node: MetaDistanceNode) {
+        self.minValue = nil
+        self.minNode = node
+    }
+    
+    func setMax(to node: MetaDistanceNode) {
+        self.maxValue = nil
+        self.maxNode = node
+    }
+    
+    override func removeReferences(to other: MetaNode) {
+        if self.minNode == other {
+            self.minNode = nil
+        }
+        
+        if self.maxNode == other {
+            self.maxNode = nil
+        }
+    }
+    
+    // TODO: Better type system things
+    func readQuantity() -> Double {
+        fatalError("readQuantity must be implemented")
+    }
+}
+
+class MetaDistanceNode: MetaQuantityNode {
     
     let nodeA: ConstructionNode
     let nodeB: ConstructionNode
-
-    private(set) var spring: ConstructionSpring?
-    private(set) var otherDistanceNode: MetaDistanceNode?
-    
-    var distance: Double {
-        return self.nodeA.cgPoint.distance(to: self.nodeB.cgPoint)
-    }
+    private(set) var spring: ConstructionSpring
     
     init(nodeA: ConstructionNode, nodeB: ConstructionNode) {
         self.nodeA = nodeA
         self.nodeB = nodeB
+
+        self.spring = DistanceSpring(nodeA: self.nodeA, nodeB: self.nodeB)
+        self.nodeA.graph.add(spring: self.spring)
     }
     
-    func equate(to other: MetaDistanceNode) {
-        self.otherDistanceNode = other
-        self.spring = DistanceSpring(nodeA: self.nodeA, nodeB: self.nodeB, distance: self.otherDistanceNode!.distance)
-        self.nodeA.graph.add(spring: self.spring!)
-        
-        if self.otherDistanceNode!.otherDistanceNode == nil {
-            self.otherDistanceNode!.equate(to: self)
-        }
+    override func readQuantity() -> Double {
+        return self.nodeA.cgPoint.distance(to: self.nodeB.cgPoint)
+    }
+    
+    override func removeConstructionSprings() {
+        self.nodeA.graph.remove(spring: self.spring)
     }
     
     override func update() {
-        guard let spring = self.spring, let otherDistanceNode = self.otherDistanceNode else {
-            return
+        if let min = self.min {
+            self.spring.minFreeLength = min
         }
-
-        spring.freeLength = otherDistanceNode.distance
+        
+        if let max = self.max {
+            self.spring.maxFreeLength = max
+        }
     }
 }
 

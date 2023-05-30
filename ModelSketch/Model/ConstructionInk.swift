@@ -11,13 +11,15 @@ class ConstructionSpring: Hashable {
     
     let stiffness: Double
     let dampingCoefficient: Double
-    var freeLength: Double
+
+    var minFreeLength: Double?
+    var maxFreeLength: Double?
     
     private(set) var pointA: CGPoint?
     let nodeA: ConstructionNode?
     let nodeB: ConstructionNode
     
-    var lastLength: Double
+    var lastDisplacement: Double
     var velocity: Double
     var force: Double
     
@@ -34,38 +36,54 @@ class ConstructionSpring: Hashable {
     }
     
     var displacement: Double {
-        return self.length - self.freeLength
+        if let minFreeLength = self.minFreeLength {
+            if self.length < minFreeLength {
+                return self.length - minFreeLength
+            }
+        }
+        
+        if let maxFreeLength = self.maxFreeLength {
+            if self.length > maxFreeLength {
+                return self.length - maxFreeLength
+            }
+        }
+        
+        return 0.0
     }
     
-    init(stiffness: Double, dampingCoefficient: Double, nodeA: ConstructionNode, nodeB: ConstructionNode, freeLength: Double) {
+    init(stiffness: Double, dampingCoefficient: Double, nodeA: ConstructionNode, nodeB: ConstructionNode, minFreeLength: Double? = nil, maxFreeLength: Double? = nil) {
         self.stiffness = stiffness
         self.dampingCoefficient = dampingCoefficient
         self.pointA = nil
         self.nodeA = nodeA
         self.nodeB = nodeB
-        self.freeLength = freeLength
-        self.lastLength = 0.0
+        self.minFreeLength = minFreeLength
+        self.maxFreeLength = maxFreeLength
+        self.lastDisplacement = 0.0
         self.velocity = 0.0
         self.force = 0.0
         
         self.nodeA!.add(spring: self)
         self.nodeB.add(spring: self)
-        self.lastLength = self.length
+
+        self.lastDisplacement = self.displacement
     }
     
-    init(stiffness: Double, dampingCoefficient: Double, pointA: CGPoint, nodeB: ConstructionNode, freeLength: Double) {
+    init(stiffness: Double, dampingCoefficient: Double, pointA: CGPoint, nodeB: ConstructionNode, minFreeLength: Double? = nil, maxFreeLength: Double? = nil) {
         self.stiffness = stiffness
         self.dampingCoefficient = dampingCoefficient
         self.pointA = pointA
         self.nodeA = nil
         self.nodeB = nodeB
-        self.freeLength = freeLength
-        self.lastLength = 0.0
+        self.minFreeLength = minFreeLength
+        self.maxFreeLength = maxFreeLength
+        self.lastDisplacement = 0.0
         self.velocity = 0.0
         self.force = 0.0
 
         self.nodeB.add(spring: self)
-        self.lastLength = self.length
+        
+        self.lastDisplacement = self.displacement
     }
 
     func set(pointA: CGPoint) {
@@ -79,8 +97,8 @@ class ConstructionSpring: Hashable {
     
     func update(dt: Double) {
         // Calculate the spring's displacement velocity
-        self.velocity = (self.length - self.lastLength) / dt
-        self.lastLength = self.length
+        self.velocity = (self.displacement - self.lastDisplacement) / dt
+        self.lastDisplacement = self.displacement
         
         // Calculate the spring's force
         let dampingForce = -1.0 * self.dampingCoefficient * self.velocity
@@ -155,21 +173,21 @@ class ConstructionSpring: Hashable {
 class AffixSpring: ConstructionSpring {
     
     init(node: ConstructionNode, to point: CGPoint) {
-        super.init(stiffness: 5000.0, dampingCoefficient: 141.0, pointA: point, nodeB: node, freeLength: 0.0)
+        super.init(stiffness: 5000.0, dampingCoefficient: 141.0, pointA: point, nodeB: node, minFreeLength: 0.0, maxFreeLength: 0.0)
     }
 }
 
 class DistanceSpring: ConstructionSpring {
     
-    init(nodeA: ConstructionNode, nodeB: ConstructionNode, distance: Double) {
-        super.init(stiffness: 2500.0, dampingCoefficient: 100.0, nodeA: nodeA, nodeB: nodeB, freeLength: distance)
+    init(nodeA: ConstructionNode, nodeB: ConstructionNode) {
+        super.init(stiffness: 2500.0, dampingCoefficient: 100.0, nodeA: nodeA, nodeB: nodeB)
     }
 }
 
 class FollowPencilSpring: ConstructionSpring {
     
     init(node: ConstructionNode, location: CGPoint) {
-        super.init(stiffness: 5000.0, dampingCoefficient: 141.0, pointA: location, nodeB: node, freeLength: 0.0)
+        super.init(stiffness: 5000.0, dampingCoefficient: 141.0, pointA: location, nodeB: node, minFreeLength: 0.0, maxFreeLength: 0.0)
     }
 }
 

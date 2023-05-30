@@ -102,7 +102,7 @@ class MetaDistanceNodeView: MetaNodeView {
         self.frame = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY).insetBy(dx: -2.0, dy: -2.0)
         self.quantityNode.cgPoint = self.center
         
-        self.label.text = "\(Int(round(self.quantityNode.distance)))"
+        self.label.text = "\(Int(round(self.quantityNode.readQuantity())))"
         self.label.sizeToFit()
         self.label.frame = self.label.frame.insetBy(dx: -2.0, dy: -1.0)
         self.label.layer.cornerRadius = self.label.frame.height / 3.0
@@ -217,7 +217,8 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                         let startNode = startDistanceNodeView.quantityNode
                         let endNode = endDistanceNodeView.quantityNode
                         
-                        startNode.equate(to: endNode)
+                        startNode.setMin(to: endNode)
+                        startNode.setMax(to: endNode)
                     }
                 }
                 
@@ -290,25 +291,17 @@ class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                 self.drawLine(start: start, end: end, lineWidth: 2.0, color: .systemYellow)
             }
         }
-        
-        var nodesDrawnAlready = Set<MetaDistanceNode>()
 
         for node in self.nodeViews.keys {
             guard let distanceNode = node as? MetaDistanceNode else {
                 continue
             }
             
-            guard !nodesDrawnAlready.contains(distanceNode) else {
-                continue
-            }
-            
-            guard let otherDistanceNode = distanceNode.otherDistanceNode else {
+            guard let otherDistanceNode = distanceNode.minNode as? MetaDistanceNode else {
                 continue
             }
             
             self.drawLine(start: distanceNode.cgPoint, end: otherDistanceNode.cgPoint, lineWidth: 2.0, color: .systemYellow)
-            nodesDrawnAlready.insert(distanceNode)
-            nodesDrawnAlready.insert(otherDistanceNode)
         }
     }
     
