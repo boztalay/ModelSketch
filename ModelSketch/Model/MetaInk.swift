@@ -148,13 +148,8 @@ class MetaDistanceNode: MetaQuantityNode {
     }
     
     override func update() {
-        if let min = self.min {
-            self.spring.minFreeLength = min
-        }
-        
-        if let max = self.max {
-            self.spring.maxFreeLength = max
-        }
+        self.spring.minFreeLength = self.min
+        self.spring.maxFreeLength = self.max
     }
 }
 
@@ -186,12 +181,12 @@ class MetaAngleNode: MetaQuantityNode {
     }
     
     override func update() {
-        var minLength: Double?
+        var minLength: Double? = nil
         if let min = self.min {
             minLength = self.springLength(for: min)
         }
         
-        var maxLength: Double?
+        var maxLength: Double? = nil
         if let max = self.max {
             maxLength = self.springLength(for: max)
         }
