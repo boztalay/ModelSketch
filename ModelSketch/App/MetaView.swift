@@ -42,6 +42,8 @@ class MetaNodeView: UIView {
     static func view(for node: MetaNode) -> MetaNodeView? {
         if let distanceNode = node as? MetaDistanceNode {
             return MetaDistanceNodeView(node: distanceNode)
+        } else if let angleNode = node as? MetaAngleNode {
+            return MetaAngleNodeView(node: angleNode)
         }
         
         return nil
@@ -136,6 +138,10 @@ class MetaDistanceNodeView: MetaNodeView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
+
+class MetaAngleNodeView: MetaNodeView {
+    // TODO
 }
 
 class MetaView: UIView, Sketchable, NodePanGestureRecognizerDelegate {

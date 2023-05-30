@@ -50,6 +50,12 @@ extension CGPoint {
             y: scalar * self.y
         )
     }
+    
+    func angleOfLine(to other: CGPoint) -> Double {
+        let run = other.x - self.x
+        let rise = other.y - self.y
+        return atan2(rise, run)
+    }
 }
 
 extension CGRect {

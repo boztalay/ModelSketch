@@ -128,7 +128,8 @@ class MetaDistanceNode: MetaQuantityNode {
     
     let nodeA: ConstructionNode
     let nodeB: ConstructionNode
-    private(set) var spring: ConstructionSpring
+
+    let spring: DistanceSpring
     
     init(nodeA: ConstructionNode, nodeB: ConstructionNode) {
         self.nodeA = nodeA
@@ -154,6 +155,54 @@ class MetaDistanceNode: MetaQuantityNode {
         if let max = self.max {
             self.spring.maxFreeLength = max
         }
+    }
+}
+
+class MetaAngleNode: MetaQuantityNode {
+    
+    let nodeA: ConstructionNode
+    let nodeB: ConstructionNode
+    let pivot: ConstructionNode
+    let angleInDegrees: Double
+    
+    let spring: DistanceSpring
+    
+    var angleInRadians: Double {
+        return (self.angleInDegrees * Double.pi) / 180.0
+    }
+    
+    init(nodeA: ConstructionNode, nodeB: ConstructionNode, pivot: ConstructionNode, angleInDegrees: Double) {
+        self.nodeA = nodeA
+        self.nodeB = nodeB
+        self.pivot = pivot
+        self.angleInDegrees = angleInDegrees
+        
+        self.spring = DistanceSpring(nodeA: self.nodeA, nodeB: self.nodeB)
+        self.nodeA.graph.add(spring: self.spring)
+    }
+    
+    override func readQuantity() -> Double {
+        let angleToA = self.pivot.cgPoint.angleOfLine(to: self.nodeA.cgPoint)
+        let angleToB = self.pivot.cgPoint.angleOfLine(to: self.nodeB.cgPoint)
+        return (angleToA - angleToB)
+    }
+    
+    override func removeConstructionSprings() {
+        self.nodeA.graph.remove(spring: self.spring)
+    }
+    
+    override func update() {
+        // TODO: Actual support for min and max angles
+        let targetAngle = self.angleInRadians
+        
+        // Law of cosines given SAS (known angle between two known sides) to
+        // find the length the spring between nodeA and nodeB should be
+        let sideALength = self.pivot.cgPoint.distance(to: self.nodeA.cgPoint)
+        let sideBLength = self.pivot.cgPoint.distance(to: self.nodeB.cgPoint)
+        let sideCLength = sqrt(pow(sideALength, 2.0) + pow(sideBLength, 2.0) - (2.0 * sideALength * sideBLength * cos(targetAngle)))
+        
+        self.spring.minFreeLength = sideCLength
+        self.spring.maxFreeLength = sideCLength
     }
 }
 
