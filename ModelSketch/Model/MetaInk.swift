@@ -163,19 +163,13 @@ class MetaAngleNode: MetaQuantityNode {
     let nodeA: ConstructionNode
     let nodeB: ConstructionNode
     let pivot: ConstructionNode
-    let angleInDegrees: Double
     
     let spring: DistanceSpring
     
-    var angleInRadians: Double {
-        return (self.angleInDegrees * Double.pi) / 180.0
-    }
-    
-    init(nodeA: ConstructionNode, nodeB: ConstructionNode, pivot: ConstructionNode, angleInDegrees: Double) {
+    init(nodeA: ConstructionNode, nodeB: ConstructionNode, pivot: ConstructionNode) {
         self.nodeA = nodeA
         self.nodeB = nodeB
         self.pivot = pivot
-        self.angleInDegrees = angleInDegrees
         
         self.spring = DistanceSpring(nodeA: self.nodeA, nodeB: self.nodeB)
         self.nodeA.graph.add(spring: self.spring)
@@ -192,17 +186,34 @@ class MetaAngleNode: MetaQuantityNode {
     }
     
     override func update() {
-        // TODO: Actual support for min and max angles
-        let targetAngle = self.angleInRadians
+        var minLength: Double?
+        if let min = self.min {
+            minLength = self.springLength(for: min)
+        }
         
-        // Law of cosines given SAS (known angle between two known sides) to
-        // find the length the spring between nodeA and nodeB should be
+        var maxLength: Double?
+        if let max = self.max {
+            maxLength = self.springLength(for: max)
+        }
+        
+        self.spring.minFreeLength = minLength
+        self.spring.maxFreeLength = maxLength
+    }
+    
+    private func springLength(for angleInDegrees: Double) -> Double {
+        let angleInRadians = self.toRadians(angleInDegrees)
+        
+        // Law of cosines given SAS (known angle between two known sides in a triangle) to
+        // find the length of the third side, which is the spring between nodeA and nodeB
         let sideALength = self.pivot.cgPoint.distance(to: self.nodeA.cgPoint)
         let sideBLength = self.pivot.cgPoint.distance(to: self.nodeB.cgPoint)
-        let sideCLength = sqrt(pow(sideALength, 2.0) + pow(sideBLength, 2.0) - (2.0 * sideALength * sideBLength * cos(targetAngle)))
+        let sideCLength = sqrt(pow(sideALength, 2.0) + pow(sideBLength, 2.0) - (2.0 * sideALength * sideBLength * cos(angleInRadians)))
         
-        self.spring.minFreeLength = sideCLength
-        self.spring.maxFreeLength = sideCLength
+        return sideCLength
+    }
+    
+    private func toRadians(_ angleInDegrees: Double) -> Double {
+        return (angleInDegrees * Double.pi) / 180.0
     }
 }
 

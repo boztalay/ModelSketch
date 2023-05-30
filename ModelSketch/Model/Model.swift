@@ -20,10 +20,11 @@ class Model {
         let nodeB = self.constructionGraph.createNode(at: CGPoint(x: 400.0, y: 400.0))
         let pivot = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 400.0))
         
-        self.constructionGraph.connect(nodeA: pivot, nodeB: nodeA)
-        self.constructionGraph.connect(nodeA: pivot, nodeB: nodeB)
+        let angleNode = MetaAngleNode(nodeA: nodeA, nodeB: nodeB, pivot: pivot)
+        angleNode.setMin(to: 15.0)
+        angleNode.setMax(to: 165.0)
         
-        self.metaGraph.add(node: MetaAngleNode(nodeA: nodeA, nodeB: nodeB, pivot: pivot, angleInDegrees: 45.0))
+        self.metaGraph.add(node: angleNode)
     }
     
     func update(dt: Double) {
