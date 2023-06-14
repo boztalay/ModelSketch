@@ -19,6 +19,10 @@ class ConstructionSpring: Hashable {
     let nodeA: ConstructionNode?
     let nodeB: ConstructionNode
     
+    // TODO: Rename this, it's the angle of the line that the force vector
+    // TODO: should only be applied perpendicular to
+    var perpendicularAngle: Double?
+    
     var lastDisplacement: Double
     var velocity: Double
     var force: Double
@@ -133,11 +137,26 @@ class ConstructionSpring: Hashable {
         let run = node.cgPoint.x - otherPoint.x
         let rise = node.cgPoint.y - otherPoint.y
         let angle = atan2(rise, run)
-
-        return CGPoint(
+        
+        var force = CGPoint(
             x: self.force * cos(angle),
             y: self.force * sin(angle)
         )
+        
+        if let perpendicularAngle = self.perpendicularAngle {
+            let minAngle = perpendicularAngle - (Double.pi / 2.0)
+            let maxAngle = perpendicularAngle + (Double.pi / 2.0)
+            let minDelta = abs(angle - minAngle)
+            let maxDelta = abs(angle - maxAngle)
+            let applyAngle = (minDelta < maxDelta) ? minAngle : maxAngle
+            
+            // Dot product to project the force vector onto the perpendicular angle
+            let appliedForce = (cos(applyAngle) * force.x) + (sin(applyAngle) * force.y)
+            force.x = appliedForce * cos(applyAngle)
+            force.y = appliedForce * sin(applyAngle)
+        }
+        
+        return force
     }
     
     func contains(_ node: ConstructionNode) -> Bool {

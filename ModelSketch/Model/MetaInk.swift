@@ -7,9 +7,6 @@
 
 import Foundation
 
-// circle gesture to open a menu to pick a relationship type
-// could have the menu open with a scratch pad next to it to accept a gesture as shorthand
-
 class MetaNode: Hashable {
 
     static var nextId: Int = 0
@@ -209,6 +206,70 @@ class MetaAngleNode: MetaQuantityNode {
     
     private func toRadians(_ angleInDegrees: Double) -> Double {
         return (angleInDegrees * Double.pi) / 180.0
+    }
+}
+
+class MetaRailNode: MetaNode {
+    
+    let nodeA: ConstructionNode
+    let nodeB: ConstructionNode
+    
+    private(set) var captiveNodes: [ConstructionNode : ConstructionSpring]
+    
+    var angle: Double {
+        let run = self.nodeB.x - self.nodeA.x
+        let rise = self.nodeB.y - self.nodeA.y
+        return atan2(rise, run)
+    }
+    
+    init(nodeA: ConstructionNode, nodeB: ConstructionNode) {
+        self.nodeA = nodeA
+        self.nodeB = nodeB
+        self.captiveNodes = [:]
+    }
+    
+    func add(captiveNode node: ConstructionNode) {
+        let spring = AffixSpring(node: node, to: .zero)
+        self.captiveNodes[node] = spring
+        self.update(spring: spring, for: node)
+        node.graph.add(spring: spring)
+    }
+    
+    private func update(spring: ConstructionSpring, for node: ConstructionNode) {
+        // Calculate vectors to the node and nodeB relative to nodeA
+        let nodeVector = node.cgPoint.subtracting(self.nodeA.cgPoint)
+        let railVector = self.nodeB.cgPoint.subtracting(self.nodeA.cgPoint)
+        let railLength = self.nodeA.cgPoint.distance(to: self.nodeB.cgPoint)
+
+        // Calculate the dot product between those vectors (this projects the
+        // vector to the node onto the vector to nodeB)
+        let dotProduct = (nodeVector.x * railVector.x) + (nodeVector.y * railVector.y)
+        let lengthFromNodeA = dotProduct / railLength
+        
+        // Move the length of the projected vector along the rail
+        let closestPointToRail = CGPoint(
+            x: self.nodeA.x + (lengthFromNodeA * cos(self.angle)),
+            y: self.nodeA.y + (lengthFromNodeA * sin(self.angle))
+        )
+        
+        spring.set(pointA: closestPointToRail)
+        spring.perpendicularAngle = self.angle
+    }
+    
+    override func update() {
+        for (node, spring) in self.captiveNodes {
+            self.update(spring: spring, for: node)
+        }
+    }
+    
+    override func removeReferences(to other: MetaNode) {
+
+    }
+    
+    override func removeConstructionSprings() {
+        for (node, spring) in self.captiveNodes {
+            node.graph.remove(spring: spring)
+        }
     }
 }
 

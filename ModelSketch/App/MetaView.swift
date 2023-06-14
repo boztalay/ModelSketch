@@ -44,6 +44,8 @@ class MetaNodeView: UIView {
             return MetaDistanceNodeView(node: distanceNode)
         } else if let angleNode = node as? MetaAngleNode {
             return MetaAngleNodeView(node: angleNode)
+        } else if let railNode = node as? MetaRailNode {
+            return MetaRailNodeView(node: railNode)
         }
         
         return nil
@@ -141,6 +143,10 @@ class MetaDistanceNodeView: MetaNodeView {
 }
 
 class MetaAngleNodeView: MetaNodeView {
+    // TODO
+}
+
+class MetaRailNodeView: MetaNodeView {
     // TODO
 }
 

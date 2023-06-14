@@ -18,13 +18,15 @@ class Model {
         
         let nodeA = self.constructionGraph.createNode(at: CGPoint(x: 400.0, y: 300.0))
         let nodeB = self.constructionGraph.createNode(at: CGPoint(x: 400.0, y: 400.0))
-        let pivot = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 400.0))
+        let captive1 = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 325.0))
+        let captive2 = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 350.0))
+        let captive3 = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 375.0))
         
-        let angleNode = MetaAngleNode(nodeA: nodeA, nodeB: nodeB, pivot: pivot)
-        angleNode.setMin(to: 15.0)
-        angleNode.setMax(to: 165.0)
-        
-        self.metaGraph.add(node: angleNode)
+        let railNode = MetaRailNode(nodeA: nodeA, nodeB: nodeB)
+        railNode.add(captiveNode: captive1)
+        railNode.add(captiveNode: captive2)
+        railNode.add(captiveNode: captive3)
+        self.metaGraph.add(node: railNode)
     }
     
     func update(dt: Double) {
