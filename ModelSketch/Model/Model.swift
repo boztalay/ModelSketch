@@ -16,17 +16,26 @@ class Model {
         self.constructionGraph = ConstructionGraph()
         self.metaGraph = MetaGraph(constructionGraph: self.constructionGraph)
         
-        let nodeA = self.constructionGraph.createNode(at: CGPoint(x: 400.0, y: 300.0))
-        let nodeB = self.constructionGraph.createNode(at: CGPoint(x: 400.0, y: 400.0))
-        let captive1 = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 325.0))
-        let captive2 = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 350.0))
-        let captive3 = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 375.0))
+        let nodeA = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 400.0))
+        let nodeB = self.constructionGraph.createNode(at: CGPoint(x: 600.0, y: 400.0))
+        let captive = self.constructionGraph.createNode(at: CGPoint(x: 450.0, y: 400.0))
         
         let railNode = MetaRailNode(nodeA: nodeA, nodeB: nodeB)
-        railNode.add(captiveNode: captive1)
-        railNode.add(captiveNode: captive2)
-        railNode.add(captiveNode: captive3)
+        railNode.add(captiveNode: captive)
         self.metaGraph.add(node: railNode)
+        
+        let distanceABNode = MetaDistanceNode(nodeA: nodeA, nodeB: nodeB)
+        distanceABNode.setMin(to: 300.0)
+        distanceABNode.setMax(to: 300.0)
+        self.metaGraph.add(node: distanceABNode)
+        
+        let distanceToANode = MetaDistanceNode(nodeA: nodeA, nodeB: captive)
+        distanceToANode.setMax(to: 300.0)
+        self.metaGraph.add(node: distanceToANode)
+        
+        let distanceToBNode = MetaDistanceNode(nodeA: nodeB, nodeB: captive)
+        distanceToBNode.setMax(to: 300.0)
+        self.metaGraph.add(node: distanceToBNode)
     }
     
     func update(dt: Double) {
