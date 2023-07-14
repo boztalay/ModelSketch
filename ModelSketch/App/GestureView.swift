@@ -11,20 +11,39 @@ import UIKit
 class MockNodeView: UIView {
     
     func set(position: CGPoint) {
+        self.backgroundColor = .clear
+        
+        let frameRadius = ConstructionNodeView.radius + ConstructionNodeView.lineWidth
+        
         self.frame = CGRect(
             origin: CGPoint(
-                x: position.x - ConstructionNodeView.radius,
-                y: position.y - ConstructionNodeView.radius
+                x: position.x - frameRadius,
+                y: position.y - frameRadius
             ),
             size: CGSize(
-                width: ConstructionNodeView.radius * 2.0,
-                height: ConstructionNodeView.radius * 2.0
+                width: frameRadius * 2.0,
+                height: frameRadius * 2.0
             )
         )
+    }
+    
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
         
-        self.layer.cornerRadius = ConstructionNodeView.radius
-        self.layer.borderColor = ConstructionNodeView.HighlightState.normal.color.cgColor
-        self.layer.borderWidth = 3.0
+        let circlePath = UIBezierPath(
+            ovalIn: CGRect(
+                x: (self.frame.width / 2.0) - ConstructionNodeView.radius,
+                y: (self.frame.height / 2.0) - ConstructionNodeView.radius,
+                width: 2.0 * ConstructionNodeView.radius,
+                height: 2.0 * ConstructionNodeView.radius
+            )
+        )
+
+        ConstructionNodeView.HighlightState.normal.strokeColor.setStroke()
+        UIColor.white.setFill()
+        circlePath.lineWidth = ConstructionNodeView.lineWidth
+        circlePath.fill()
+        circlePath.stroke()
     }
 }
 

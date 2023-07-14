@@ -11,17 +11,29 @@ class ConstructionNodeView: UIView {
     
     enum HighlightState {
         case normal
+        case beingDragged
         case startOfConnection
         case startOfMetaQuantity
         
-        var color: UIColor {
+        var strokeColor: UIColor {
             switch self {
                 case .normal:
+                    return .darkGray
+                case .beingDragged:
                     return .darkGray
                 case .startOfConnection:
                     return .systemBlue
                 case .startOfMetaQuantity:
                     return .systemYellow
+            }
+        }
+        
+        var fillColor: UIColor {
+            switch self {
+                case .beingDragged:
+                    return .red.withAlphaComponent(0.25)
+                default:
+                    return .white
             }
         }
     }
@@ -83,8 +95,8 @@ class ConstructionNodeView: UIView {
             )
         )
 
-        self.highlightState.color.setStroke()
-        UIColor.white.setFill()
+        self.highlightState.strokeColor.setStroke()
+        self.highlightState.fillColor.setFill()
         circlePath.lineWidth = ConstructionNodeView.lineWidth
         circlePath.fill()
         circlePath.stroke()
@@ -154,6 +166,8 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                     self.pencilSpring = FollowPencilSpring(node: nodeView.node, location: location)
                     self.graph.add(spring: self.pencilSpring!)
                 }
+                
+                nodeView.setHighlightState(.beingDragged)
             }
         }
         
@@ -171,13 +185,13 @@ class ConstructionView: UIView, Sketchable, NodePanGestureRecognizerDelegate {
                     self.graph.connect(nodeA: nodeView.node, nodeB: endNodeView.node)
                 }
                 
-                nodeView.setHighlightState(.normal)
-                
                 self.partialConnection = nil
             } else {
                 self.graph.remove(spring: self.pencilSpring!)
                 self.pencilSpring = nil
             }
+            
+            nodeView.setHighlightState(.normal)
         }
     }
     
