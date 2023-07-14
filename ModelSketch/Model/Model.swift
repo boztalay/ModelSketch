@@ -16,26 +16,43 @@ class Model {
         self.constructionGraph = ConstructionGraph()
         self.metaGraph = MetaGraph(constructionGraph: self.constructionGraph)
         
-        let nodeA = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 400.0))
-        let nodeB = self.constructionGraph.createNode(at: CGPoint(x: 600.0, y: 400.0))
-        let captive = self.constructionGraph.createNode(at: CGPoint(x: 450.0, y: 400.0))
+        let angleNodeA = self.constructionGraph.createNode(at: CGPoint(x: 371.0, y: 229.0))
+        let angleNodeB = self.constructionGraph.createNode(at: CGPoint(x: 400.0, y: 300.0))
+        let angleNodePivot = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 300.0))
+        self.constructionGraph.add(spring: AffixSpring(node: angleNodePivot, to: angleNodePivot.cgPoint))
         
-        let railNode = MetaRailNode(nodeA: nodeA, nodeB: nodeB)
-        railNode.add(captiveNode: captive)
-        self.metaGraph.add(node: railNode)
+        let anglePivotBDistanceNode = MetaDistanceNode(nodeA: angleNodePivot, nodeB: angleNodeB)
+        anglePivotBDistanceNode.setMin(to: 50.0)
+        anglePivotBDistanceNode.setMax(to: 150.0)
+        self.metaGraph.add(node: anglePivotBDistanceNode)
         
-        let distanceABNode = MetaDistanceNode(nodeA: nodeA, nodeB: nodeB)
-        distanceABNode.setMin(to: 300.0)
-        distanceABNode.setMax(to: 300.0)
+        let anglePivotADistanceNode = MetaDistanceNode(nodeA: angleNodePivot, nodeB: angleNodeA)
+        anglePivotADistanceNode.setMin(to: anglePivotBDistanceNode)
+        anglePivotADistanceNode.setMax(to: anglePivotBDistanceNode)
+        self.metaGraph.add(node: anglePivotADistanceNode)
+        
+        let distanceNodeA = self.constructionGraph.createNode(at: CGPoint(x: 300.0, y: 350.0))
+        let distanceNodeB = self.constructionGraph.createNode(at: CGPoint(x: 345.0, y: 350.0))
+        let distanceABNode = MetaDistanceNode(nodeA: distanceNodeA, nodeB: distanceNodeB)
         self.metaGraph.add(node: distanceABNode)
         
-        let distanceToANode = MetaDistanceNode(nodeA: nodeA, nodeB: captive)
-        distanceToANode.setMax(to: 300.0)
-        self.metaGraph.add(node: distanceToANode)
+        let angleNode = MetaAngleNode(nodeA: angleNodeA, nodeB: angleNodeB, pivot: angleNodePivot)
+        angleNode.setMin(to: distanceABNode)
+        angleNode.setMax(to: distanceABNode)
+        self.metaGraph.add(node: angleNode)
         
-        let distanceToBNode = MetaDistanceNode(nodeA: nodeB, nodeB: captive)
-        distanceToBNode.setMax(to: 300.0)
-        self.metaGraph.add(node: distanceToBNode)
+        let railNodeA = self.constructionGraph.createNode(at: CGPoint(x: 250.0, y: 450.0))
+        let railNodeB = self.constructionGraph.createNode(at: CGPoint(x: 450.0, y: 450.0))
+        let railNodeCaptive = self.constructionGraph.createNode(at: CGPoint(x: 350.0, y: 450.0))
+        
+        let railNode = MetaRailNode(nodeA: railNodeA, nodeB: railNodeB)
+        railNode.add(captiveNode: railNodeCaptive)
+        self.metaGraph.add(node: railNode)
+
+        let railABDistanceNode = MetaDistanceNode(nodeA: railNodeA, nodeB: railNodeB)
+        railABDistanceNode.setMin(to: 200.0)
+        railABDistanceNode.setMax(to: 200.0)
+        self.metaGraph.add(node: railABDistanceNode)
     }
     
     func update(dt: Double) {

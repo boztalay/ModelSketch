@@ -192,21 +192,21 @@ class ConstructionSpring: Hashable {
 class AffixSpring: ConstructionSpring {
     
     init(node: ConstructionNode, to point: CGPoint) {
-        super.init(stiffness: 5000.0, dampingCoefficient: 141.0, pointA: point, nodeB: node, minFreeLength: 0.0, maxFreeLength: 0.0)
+        super.init(stiffness: 5000.0, dampingCoefficient: 141.0 / 1.5, pointA: point, nodeB: node, minFreeLength: 0.0, maxFreeLength: 0.0)
     }
 }
 
 class DistanceSpring: ConstructionSpring {
     
     init(nodeA: ConstructionNode, nodeB: ConstructionNode) {
-        super.init(stiffness: 2500.0, dampingCoefficient: 100.0, nodeA: nodeA, nodeB: nodeB)
+        super.init(stiffness: 2500.0, dampingCoefficient: 100.0 / 1.5, nodeA: nodeA, nodeB: nodeB)
     }
 }
 
 class FollowPencilSpring: ConstructionSpring {
     
     init(node: ConstructionNode, location: CGPoint) {
-        super.init(stiffness: 5000.0, dampingCoefficient: 141.0, pointA: location, nodeB: node, minFreeLength: 0.0, maxFreeLength: 0.0)
+        super.init(stiffness: 5000.0, dampingCoefficient: 141.0 / 1.5, pointA: location, nodeB: node, minFreeLength: 0.0, maxFreeLength: 0.0)
     }
 }
 
@@ -256,7 +256,7 @@ class ConstructionNode: Hashable {
     
     func update(dt: Double) {
         let springForce = self.springs.reduce(CGPoint.zero, { $0.adding($1.forceVector(for: self)) })
-        let frictionForce = self.velocity.scaled(by: -2.0) // TODO: Make this a static let parameter or tunable, also needs to be scaled to the spring force somehow?
+        let frictionForce = self.velocity.scaled(by: -3.0) // TODO: Make this a static let parameter or tunable, also needs to be scaled to the spring force somehow?
         let totalForce = springForce.adding(frictionForce)
         
         // NOTE: Mass is 1.0, so force is acceleration in this case

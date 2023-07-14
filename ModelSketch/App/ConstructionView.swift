@@ -31,7 +31,7 @@ class ConstructionNodeView: UIView {
         var fillColor: UIColor {
             switch self {
                 case .beingDragged:
-                    return .red.withAlphaComponent(0.25)
+                    return UIColor(red: 0.957, green: 0.757, blue: 0.757, alpha: 1.000)
                 default:
                     return .white
             }
